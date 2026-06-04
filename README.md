@@ -1,4 +1,4 @@
-# Aurelius — Personal Finance Tracker
+# Michell  — Personal Finance Tracker
 
 A production-ready personal finance web application with a premium banking aesthetic.
 Single-file architecture (HTML + CSS + JS), deployable to Vercel, Netlify, or GitHub Pages in seconds.
