@@ -1,0 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+@import "tailwindcss";
+
+:root {
+  --blush: #f5e6e8;
+  --blush-mid: #eacdd1;
+  --rose: #d4a0a7;
+  --rose-deep: #b87a84;
+  --mauve: #9b6b7a;
+  --mauve-dark: #7a4f5e;
+  --sage: #a8b5a0;
+  --sage-light: #dde8da;
+  --cream: #faf7f5;
+  --warm-white: #fdf9f8;
+  --text-primary: #2d1f25;
+  --text-secondary: #6b4f58;
+  --text-muted: #9e7d87;
+  --border: #e8d5d9;
+  --border-light: #f0e4e7;
+  --income: #7aab8a;
+  --income-bg: #e8f4ec;
+  --expense: #c47a7a;
+  --expense-bg: #f4e8e8;
+  --savings: #7a9ab8;
+  --savings-bg: #e8eff4;
+  --investment: #a07ab8;
+  --investment-bg: #efe8f4;
+  --shadow-sm: 0 1px 3px rgba(45, 31, 37, 0.06), 0 1px 2px rgba(45, 31, 37, 0.04);
+  --shadow-md: 0 4px 12px rgba(45, 31, 37, 0.08), 0 2px 6px rgba(45, 31, 37, 0.05);
+  --shadow-lg: 0 8px 24px rgba(45, 31, 37, 0.10), 0 4px 12px rgba(45, 31, 37, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'DM Sans', sans-serif;
+  background-color: var(--cream);
+  color: var(--text-primary);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary {
+  background: var(--mauve-dark);
+  color: white;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary:hover {
+  background: var(--mauve);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(122, 79, 94, 0.3);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+
+.btn-ghost:hover {
+  background: var(--blush);
+  border-color: var(--rose);
+  color: var(--mauve-dark);
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-primary);
+  background: white;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input-field:focus {
+  border-color: var(--rose-deep);
+  box-shadow: 0 0 0 3px rgba(184, 122, 132, 0.15);
+}
+
+.input-field::placeholder {
+  color: var(--text-muted);
+}
+
+select.input-field {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239e7d87' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.nav-item:hover {
+  background: var(--blush);
+  color: var(--mauve-dark);
+}
+
+.nav-item.active {
+  background: var(--blush-mid);
+  color: var(--mauve-dark);
+  font-weight: 600;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--blush-mid);
+  border-radius: 4px;
+}
+
+.badge-income {
+  background: var(--income-bg);
+  color: #4a7a5a;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-expense {
+  background: var(--expense-bg);
+  color: #8a4a4a;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.25s ease forwards;
+}
