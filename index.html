@@ -122,6 +122,7 @@ body {
 .btn-login:hover { background:var(--blue); transform:translateY(-1px); }
 .login-err { display:none; margin-bottom:14px; padding:9px 13px; border-radius:6px; background:var(--red-light); color:var(--red); font-size:12px; }
 .login-err.show { display:block; }
+.login-err[style*="block"] { display:block !important; }
 
 /* ═══════════════════════════════════════════════════
    APP SHELL
@@ -639,11 +640,7 @@ tr.row-savings td:not(.rn) { background:#F0F4FF !important; }
 
 <script>
 "use strict";
-/* ═══════════════════════════════════════════════════════════════
-   MICHELL FINANCE v3
-   Architecture: Spreadsheet-native UI · bidirectional Sheets sync
-   Auth: SHA-256 hashed credentials — no plaintext anywhere
-═══════════════════════════════════════════════════════════════ */
+/* MICHELL FINANCE v3 — Spreadsheet UI + Google Sheets Sync */
 
 /* ── AUTH ────────────────────────────────────────────────────────
    Credentials stored as Base64 — not plaintext-readable at a glance.
@@ -731,30 +728,33 @@ function toast(msg, type="info", duration=4500){
    AUTH
 ═══════════════════════════════════════════════════════════════ */
 function initAuth(){
-  document.getElementById("li-btn").addEventListener("click", doLogin);
-  document.getElementById("li-pass").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
-  const s = localStorage.getItem(LS_SESSION);
-  if(s === "mf_ok"){ bootApp(); }
+  var btn  = document.getElementById("li-btn");
+  var pass = document.getElementById("li-pass");
+  btn.onclick  = doLogin;
+  pass.onkeydown = function(e){ if(e.key==="Enter") doLogin(); };
+  try {
+    if(localStorage.getItem(LS_SESSION) === "mf_ok"){ bootApp(); return; }
+  } catch(e){ /* localStorage blocked */ }
 }
 
 function doLogin(){
-  const u   = document.getElementById("li-user").value.trim();
-  const p   = document.getElementById("li-pass").value;
-  const err = document.getElementById("login-err");
+  var u   = document.getElementById("li-user").value.trim();
+  var p   = document.getElementById("li-pass").value.trim();
+  var err = document.getElementById("login-err");
 
   if(!u || !p){
     err.textContent = "Ingresa usuario y contraseña.";
-    err.classList.add("show");
+    err.style.display = "block";
     return;
   }
 
   if(_chk(u, p)){
-    err.classList.remove("show");
-    localStorage.setItem(LS_SESSION, "mf_ok");
+    err.style.display = "none";
+    try{ localStorage.setItem(LS_SESSION, "mf_ok"); }catch(e){}
     bootApp();
   } else {
     err.textContent = "Usuario o contraseña incorrectos.";
-    err.classList.add("show");
+    err.style.display = "block";
     document.getElementById("li-pass").value = "";
     document.getElementById("li-pass").focus();
   }
@@ -1697,10 +1697,10 @@ function autoSync(){
    INIT
 ═══════════════════════════════════════════════════════════════ */
 function initApp(){
-  updateSyncBadge();
-  initLedger();
-  initInv();
-  autoSync();
+  try{ updateSyncBadge(); }catch(e){}
+  try{ initLedger(); }catch(e){ console.error("initLedger:",e); }
+  try{ initInv(); }catch(e){ console.error("initInv:",e); }
+  try{ autoSync(); }catch(e){}
 }
 
 document.addEventListener("DOMContentLoaded", ()=>{ initAuth(); });
