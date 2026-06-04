@@ -1,381 +1,1465 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inversiones de Capital S.A.S.</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
-    <style>
-        :root {
-            --gold-light: #f3e5ab;
-            --gold: #d4af37;
-            --gold-dark: #aa7c11;
-            --bg-dark: #0f141d;
-            --bg-card: #17202e;
-            --text-light: #f0f4f8;
-            --text-muted: #8fa0b5;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Michell · Personal Finance</title>
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
-        }
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow-x: hidden;
-        }
+  <style>
+    /* ═══════════════════════════════════════════════════════════════
+       CSS DESIGN TOKENS (MARFIL, AZUL BEBÉ & SANS-SERIF ORIGINAL)
+    ═══════════════════════════════════════════════════════════════ */
+    :root {
+      --ivory:        #F7F5F0;
+      --ivory-deep:   #EEEBE3;
+      --ivory-card:   #FAFAF7;
+      --blue:         #7BAFD4;
+      --blue-light:   #A8CCE8;
+      --blue-deep:    #4F8DB4;
+      --blue-muted:   #D2E3F0;
+      
+      --text-main:    #2C3539;
+      --text-muted:   #6C7A81;
+      --border-soft:  rgba(79, 141, 180, 0.12);
+      --shadow-subtle: 0 4px 20px rgba(44, 53, 57, 0.04);
+      --shadow-md:     0 10px 30px rgba(44, 53, 57, 0.08);
 
-        /* --- VISTA DE LOGIN --- */
-        .login-container {
-            background: linear-gradient(135deg, var(--bg-card) 0%, #0d131a 100%);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            padding: 3rem 2rem;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            text-align: center;
-            transition: all 0.3s ease;
-        }
+      --font-serif:   'Cormorant Garamond', serif;
+      --font-sans:    'DM Sans', sans-serif;
+    }
 
-        .logo-icon {
-            color: var(--gold);
-            margin-bottom: 1rem;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        h1 {
-            font-family: 'Cinzel', serif;
-            color: var(--gold);
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-            letter-spacing: 2px;
-        }
+    body {
+      background-color: var(--ivory);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
 
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-bottom: 2.5rem;
-        }
+    input, select, button {
+      font-family: var(--font-sans);
+    }
 
-        .input-group {
-            margin-bottom: 1.5rem;
-            text-align: left;
-            position: relative;
-        }
+    /* ═══════════════════════════════════════════════════════════════
+       UI COMPONENTS & TOASTS
+    ═══════════════════════════════════════════════════════════════ */
+    #toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .toast {
+      background: var(--ivory-card);
+      border-left: 3px solid var(--blue);
+      box-shadow: var(--shadow-md);
+      padding: 14px 20px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      min-width: 280px;
+      max-width: 380px;
+      animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .toast.error { border-left-color: #D96B6B; }
+    .toast.success { border-left-color: #6BD99C; }
+    @keyframes toastIn {
+      from { transform: translateY(-10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
 
-        .input-group label {
-            display: block;
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    /* ═══════════════════════════════════════════════════════════════
+       LOGIN VIEW
+    ═══════════════════════════════════════════════════════════════ */
+    #view-login {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .login-box {
+      background: var(--ivory-card);
+      border: 1px solid var(--ivory-deep);
+      box-shadow: var(--shadow-md);
+      width: 100%;
+      max-width: 400px;
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .login-box h1 {
+      font-family: var(--font-serif);
+      font-size: 2.4rem;
+      font-weight: 400;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .login-box .tagline {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .form-group {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      background: var(--ivory);
+      border: 1px solid var(--ivory-deep);
+      padding: 12px 14px;
+      font-size: 0.9rem;
+      color: var(--text-main);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--blue);
+      background: var(--ivory-card);
+    }
+    .btn-submit {
+      width: 100%;
+      background: var(--blue);
+      color: #FFF;
+      border: none;
+      padding: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 10px;
+    }
+    .btn-submit:hover { background: var(--blue-deep); }
 
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
+    /* ═══════════════════════════════════════════════════════════════
+       APP MAIN CORE LAYOUT
+    ═══════════════════════════════════════════════════════════════ */
+    #view-app { display: none; }
+    
+    nav {
+      background: var(--ivory-card);
+      border-bottom: 1px solid var(--ivory-deep);
+      padding: 0 40px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav .brand {
+      font-family: var(--font-serif);
+      font-size: 1.6rem;
+      font-weight: 400;
+    }
+    nav .menu {
+      display: flex;
+      gap: 32px;
+      height: 100%;
+    }
+    nav .menu button {
+      background: none;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      height: 100%;
+      padding: 0 4px;
+      position: relative;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+    nav .menu button:hover { color: var(--text-main); }
+    nav .menu button.active {
+      color: var(--text-main);
+    }
+    nav .menu button.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--blue);
+    }
+    nav .logout-area {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    nav .user-badge {
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: var(--ivory-deep);
+      padding: 6px 12px;
+      border-radius: 20px;
+      color: var(--text-main);
+    }
+    nav .btn-logout {
+      background: none;
+      border: none;
+      font-size: 0.8rem;
+      color: #D96B6B;
+      font-weight: 600;
+      cursor: pointer;
+    }
 
-        .input-wrapper i {
-            position: absolute;
-            left: 12px;
-            color: var(--text-muted);
-            width: 18px;
-            height: 18px;
-        }
+    /* CONTAINER CONFIG */
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 24px;
+    }
+    .app-section { display: none; }
+    .app-section.active { display: block; }
 
-        .input-group input {
-            width: 100%;
-            padding: 12px 12px 12px 40px;
-            background-color: rgba(15, 20, 29, 0.6);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
+    /* HEADER PATTERNS */
+    .section-header {
+      margin-bottom: 32px;
+    }
+    .section-header h2 {
+      font-family: var(--font-serif);
+      font-size: 2.2rem;
+      font-weight: 400;
+      margin-bottom: 4px;
+    }
+    .section-header p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
 
-        .input-group input:focus {
-            outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
-        }
+    /* ═══════════════════════════════════════════════════════════════
+       GRID LAYOUTS & REUSABLE CARDS
+    ═══════════════════════════════════════════════════════════════ */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .card-metric {
+      background: var(--ivory-card);
+      border: 1px solid var(--ivory-deep);
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: var(--shadow-subtle);
+    }
+    .card-metric .label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .card-metric .val {
+      font-size: 1.8rem;
+      font-weight: 500;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .card-metric .sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
 
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(90deg, var(--gold-dark), var(--gold));
-            border: none;
-            border-radius: 8px;
-            color: #000;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    /* STATUS BARS & HEALTH LIGHTS */
+    .health-indicator {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      background: var(--ivory-card);
+      border: 1px solid var(--ivory-deep);
+      border-radius: 8px;
+      margin-bottom: 32px;
+    }
+    .health-light {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .health-light.green  { background: #6BD99C; box-shadow: 0 0 12px rgba(107,217,156,0.4); }
+    .health-light.yellow { background: #E6C262; box-shadow: 0 0 12px rgba(230,194,98,0.4); }
+    .health-light.red    { background: #D96B6B; box-shadow: 0 0 12px rgba(217,107,107,0.4); }
+    .health-text h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 2px;}
+    .health-text p { font-size: 0.8rem; color: var(--text-muted); }
 
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
-        }
+    /* CONTENT SPLIT GRID */
+    .split-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--ivory-card);
+      border: 1px solid var(--ivory-deep);
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: var(--shadow-subtle);
+    }
+    .panel h3 {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      font-weight: 400;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--ivory-deep);
+    }
 
-        .error-msg {
-            color: #ff6b6b;
-            font-size: 0.85rem;
-            margin-top: 1rem;
-            display: none;
-        }
+    /* NATIVE TIMELINE FILTERS */
+    .timeline-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      background: var(--ivory-deep);
+      padding: 4px;
+      border-radius: 6px;
+    }
+    .timeline-selector select {
+      background: var(--ivory-card);
+      border: 1px solid transparent;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border-radius: 4px;
+      color: var(--text-main);
+      outline: none;
+    }
+    .month-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 6px;
+      background: var(--ivory-deep);
+      padding: 4px;
+      border-radius: 6px;
+      margin-bottom: 24px;
+    }
+    .month-grid button {
+      background: none;
+      border: none;
+      padding: 8px 0;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .month-grid button:hover { background: rgba(255,255,255,0.3); color: var(--text-main); }
+    .month-grid button.active {
+      background: var(--ivory-card);
+      color: var(--text-main);
+      box-shadow: var(--shadow-subtle);
+    }
 
-        /* --- VISTA DE DASHBOARD --- */
-        .dashboard {
-            width: 100%;
-            max-width: 1200px;
-            padding: 2rem;
-            display: none;
-        }
+    /* PREMIUM CLEAN DATA TABLES */
+    .table-container {
+      background: var(--ivory-card);
+      border: 1px solid var(--ivory-deep);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow-subtle);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+    th {
+      background: var(--ivory-deep);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      padding: 12px 20px;
+    }
+    td {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--ivory-deep);
+    }
+    tr:last-child td { border-bottom: none; }
+    .amount-in { color: #4F9B73; font-weight: 500; }
+    .amount-out { color: #C55A5A; font-weight: 500; }
+    .badge-src {
+      font-size: 0.65rem;
+      font-weight: 600;
+      background: var(--blue-muted);
+      color: var(--blue-deep);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 8px;
+      text-transform: uppercase;
+    }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
+    /* FORMS DEFINITIONS */
+    .app-form { display: flex; flex-direction: column; gap: 14px; }
+    .app-form-group { display: flex; flex-direction: column; gap: 4px; }
+    .app-form-group label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+    .app-form-group input, .app-form-group select {
+      background: var(--ivory);
+      border: 1px solid var(--ivory-deep);
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      border-radius: 4px;
+      color: var(--text-main);
+      outline: none;
+    }
+    .app-form-group input:focus, .app-form-group select:focus { border-color: var(--blue); }
+    .btn-action {
+      background: var(--text-main);
+      color: #FFF;
+      border: none;
+      padding: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-action:hover { opacity: 0.9; }
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+    /* ADVICE SECTIONS */
+    .advice-box {
+      margin-top: 24px;
+      background: var(--blue-muted);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .advice-box h4 { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 400; margin-bottom: 8px; }
+    .advice-box p { font-size: 0.8rem; line-height: 1.5; color: var(--text-main); }
 
-        .btn-logout {
-            background: transparent;
-            border: 1px solid #ff6b6b;
-            color: #ff6b6b;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    /* SYNC CARD PATTERN */
+    .sync-card {
+      background: #E8EFF5;
+      border: 1px solid rgba(123, 175, 212, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .sync-card h4 { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .sync-card p { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px; }
+    .sync-flex { display: flex; gap: 8px; }
+    .sync-flex input { flex: 1; padding: 8px 12px; font-size: 0.8rem; border: 1px solid var(--blue-light); border-radius: 4px; background: #FFF; outline: none; }
+    .sync-flex button { background: var(--blue); color: #FFF; border: none; padding: 0 16px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+    .sync-flex button:hover { background: var(--blue-deep); }
 
-        .btn-logout:hover {
-            background-color: #ff6b6b;
-            color: #fff;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .card {
-            background-color: var(--bg-card);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 1.5rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background-color: var(--gold);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-        }
-
-        .card-value {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 0.5rem;
-        }
-
-        .card-footer {
-            font-size: 0.85rem;
-            color: #51cf66;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* Ocultar elementos */
-        .hidden { display: none !important; }
-    </style>
+    /* ANNUAL ANALYTICAL VIEW */
+    .annual-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px; }
+    .chart-container { background: var(--ivory-card); border: 1px solid var(--ivory-deep); border-radius: 8px; padding: 24px; box-shadow: var(--shadow-subtle); height: 320px; position: relative; }
+    .consulting-report { background: var(--ivory-card); border: 1px solid var(--ivory-deep); border-radius: 8px; padding: 32px; box-shadow: var(--shadow-subtle); }
+    .consulting-report h2 { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 400; margin-bottom: 4px; }
+    .consulting-report .sub { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 24px; letter-spacing: 0.5px; }
+    .consulting-insights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+    .insight-item { background: var(--ivory); padding: 16px; border-radius: 6px; border: 1px solid var(--ivory-deep); }
+    .insight-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    .insight-val { font-size: 1.2rem; font-weight: 600; margin-bottom: 2px; }
+    .insight-desc { font-size: 0.75rem; color: var(--text-muted); }
+    .annual-advice { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--ivory-deep); padding-top: 24px; }
+    .advice-item { font-size: 0.85rem; line-height: 1.6; position: relative; padding-left: 20px; }
+    .advice-item::before { content: '•'; position: absolute; left: 4px; color: var(--blue-deep); font-weight: bold; }
+  </style>
 </head>
 <body>
 
-    <!-- MÓDULO DE LOGIN -->
-    <div id="loginView" class="login-container">
-        <i data-lucide="gem" class="logo-icon" style="width: 48px; height: 48px;"></i>
-        <h1>Inversiones de Capital</h1>
-        <p class="subtitle">S.A.S. | Acceso Privado</p>
+  <div id="toast-container"></div>
+
+  <div id="view-login">
+    <div class="login-box">
+      <h1>Michell</h1>
+      <div class="tagline">Personal Finance Tracker</div>
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="login-user" required autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-pass" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn-submit">Access Ledger</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="view-app">
+    <nav>
+      <div class="brand">Michell</div>
+      <div class="menu">
+        <button id="nav-ledger" class="active" onclick="switchTab('ledger')">📒 Monthly Ledger</button>
+        <button id="nav-investments" onclick="switchTab('investments')">📈 Investments</button>
+        <button id="nav-annual" onclick="switchTab('annual')">📊 Annual Overview</button>
+      </div>
+      <div class="logout-area">
+        <span class="user-badge" id="user-badge-name"></span>
+        <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+      </div>
+    </nav>
+
+    <div class="container">
+      
+      <section id="section-ledger" class="app-section active">
+        <div class="section-header">
+          <h2>Monthly Ledger</h2>
+          <p>Track income, expenses and your financial health for each month.</p>
+        </div>
+
+        <div class="sync-card">
+          <h4>Google Sheets Synchronization</h4>
+          <p>Connect your published CSV link to import your transactions or investments immediately.</p>
+          <div class="sync-flex">
+            <input type="text" id="sync-url-input" placeholder="Paste your published Google Sheets CSV URL here..." />
+            <button id="btn-sync-trigger" onclick="handleSyncTrigger()">Sync Now</button>
+          </div>
+        </div>
+
+        <div class="timeline-selector">
+          <select id="ledger-year" onchange="changeLedgerTimeline()"></select>
+        </div>
+        <div class="month-grid" id="ledger-months"></div>
+
+        <div class="dashboard-grid">
+          <div class="card-metric">
+            <div class="label">Total Income</div>
+            <div class="val" id="metric-income">$ 0</div>
+            <div class="sub" id="metric-income-sub">Base Income Allocation</div>
+          </div>
+          <div class="card-metric">
+            <div class="label">Total Expenses</div>
+            <div class="val" id="metric-expenses">$ 0</div>
+            <div class="sub" id="metric-expenses-sub">0 expense entries</div>
+          </div>
+          <div class="card-metric">
+            <div class="label">Net Balance</div>
+            <div class="val" id="metric-net">$ 0</div>
+            <div class="sub" id="metric-net-sub">Surplus this month</div>
+          </div>
+        </div>
+
+        <div class="health-indicator" id="ledger-health-container">
+          <div class="health-light" id="ledger-health-light"></div>
+          <div class="health-text" id="ledger-health-text"></div>
+        </div>
+
+        <div class="split-grid">
+          <div class="panel">
+            <h3>💰 Monthly Income</h3>
+            <form class="app-form" onsubmit="saveBaseIncome(event)">
+              <div class="app-form-group">
+                <label>Total Monthly Income</label>
+                <input type="number" id="form-base-income" required placeholder="5000000" />
+              </div>
+              <button type="submit" class="btn-action">Save</button>
+            </form>
+
+            <br/><br/>
+            <h3>➕ Add Transaction</h3>
+            <form class="app-form" onsubmit="addTransaction(event)">
+              <div class="app-form-group">
+                <label>Date</label>
+                <input type="date" id="tx-date" required />
+              </div>
+              <div class="app-form-group">
+                <label>Description</label>
+                <input type="text" id="tx-desc" required placeholder="e.g. Grocery Store" />
+              </div>
+              <div class="app-form-group">
+                <label>Category</label>
+                <select id="tx-cat" required>
+                  <option value="Income">Income</option>
+                  <option value="Food">Food</option>
+                  <option value="Housing">Housing</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Health">Health</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Savings">Savings</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="app-form-group">
+                <label>Type</label>
+                <select id="tx-type" required>
+                  <option value="income">Income</option>
+                  <option value="expense" selected>Expense</option>
+                </select>
+              </div>
+              <div class="app-form-group">
+                <label>Amount (COP $)</label>
+                <input type="number" id="tx-amount" required placeholder="45000" />
+              </div>
+              <button type="submit" class="btn-action">Add Entry</button>
+            </form>
+          </div>
+
+          <div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="ledger-table-body"></tbody>
+              </table>
+            </div>
+            <div id="ledger-advice-area"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-investments" class="app-section">
+        <div class="section-header">
+          <h2>Investment Tracking</h2>
+          <p>Monitor your active capital deployments and calculated returns over time.</p>
+        </div>
+
+        <div class="timeline-selector">
+          <select id="inv-year" onchange="changeInvTimeline()"></select>
+        </div>
+        <div class="month-grid" id="inv-months"></div>
+
+        <div class="dashboard-grid">
+          <div class="card-metric">
+            <div class="label">Invested Capital</div>
+            <div class="val" id="metric-inv-capital">$ 0</div>
+            <div class="sub">Total principal deployed</div>
+          </div>
+          <div class="card-metric">
+            <div class="label">Current Asset Value</div>
+            <div class="val" id="metric-inv-current">$ 0</div>
+            <div class="sub">Valuation this month</div>
+          </div>
+          <div class="card-metric">
+            <div class="label">Estimated Net ROI</div>
+            <div class="val" id="metric-inv-roi">$ 0</div>
+            <div class="sub" id="metric-inv-roi-pct">0.00% Net Yield</div>
+          </div>
+        </div>
+
+        <div class="split-grid">
+          <div class="panel">
+            <h3>➕ Log Investment</h3>
+            <form class="app-form" onsubmit="addInvestment(event)">
+              <div class="app-form-group">
+                <label>Date</label>
+                <input type="date" id="inv-date" required />
+              </div>
+              <div class="app-form-group">
+                <label>Asset Description</label>
+                <input type="text" id="inv-asset" required placeholder="e.g. S&P 500 ETF" />
+              </div>
+              <div class="app-form-group">
+                <label>Type</label>
+                <select id="inv-type" required>
+                  <option value="Stocks">Stocks</option>
+                  <option value="ETF">ETF</option>
+                  <option value="Crypto">Crypto</option>
+                  <option value="Real Estate">Real Estate</option>
+                  <option value="Bonds">Bonds</option>
+                  <option value="Business">Business</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="app-form-group">
+                <label>Invested Capital</label>
+                <input type="number" id="inv-capital" required placeholder="2000000" />
+              </div>
+              <div class="app-form-group">
+                <label>Current Valuation</label>
+                <input type="number" id="inv-current-val" required placeholder="2150000" />
+              </div>
+              <button type="submit" class="btn-action">Log Asset</button>
+            </form>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Asset Name</th>
+                  <th>Type</th>
+                  <th>Capital Deployed</th>
+                  <th>Current Value</th>
+                  <th>Net Profit</th>
+                  <th>ROI (%)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="inv-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-annual" class="app-section">
+        <div class="section-header">
+          <h2>Annual Analytics Dashboard</h2>
+          <p>Aggregated multi-month visualizations and strategic consulting reports.</p>
+        </div>
+
+        <div class="timeline-selector" style="max-width:200px;">
+          <select id="annual-year-select" onchange="changeAnnualTimeline()" style="width:100%"></select>
+        </div>
+
+        <div class="annual-grid">
+          <div class="chart-container">
+            <canvas id="chart-annual-cashflow"></canvas>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-annual-categories"></canvas>
+          </div>
+        </div>
+
+        <div class="annual-grid">
+          <div class="chart-container" style="grid-column: span 2;">
+            <canvas id="chart-annual-savings"></canvas>
+          </div>
+        </div>
+
+        <div class="consulting-report" id="annual-report-target"></div>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+  const AUTH_CONFIG = window.__AUTH__ || { username: "michellpf", password: "3360076" };
+
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const MONTHS_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+  const fmt = (n) => {
+    const num = parseFloat(n) || 0;
+    return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(num);
+  };
+
+  const uid = () => Math.random().toString(36).substring(2, 10);
+
+  // NOTIFICACIONES TOAST
+  function showToast(msg, type = "info") {
+    const container = document.getElementById("toast-container");
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span>${msg}</span><button style="background:none;border:none;color:inherit;cursor:pointer;margin-left:12px;font-weight:bold" onclick="this.parentElement.remove()">×</button>`;
+    container.appendChild(toast);
+    setTimeout(() => { if(toast) toast.remove(); }, 5000);
+  }
+
+  // ---- PERSISTENCIA EN ALMACENAMIENTO LOCAL ----
+  const DB = {
+    _key: "michell_finance_data",
+
+    load() {
+      try {
+        return JSON.parse(localStorage.getItem(this._key)) || this._defaults();
+      } catch { return this._defaults(); }
+    },
+    save(d) {
+      localStorage.setItem(this._key, JSON.stringify(d));
+    },
+    _defaults() {
+      return { ledger: {}, investments: {} };
+    },
+    getLedger(y, m) {
+      const d = this.load();
+      const k = `${y}-${m}`;
+      if (!d.ledger[k]) d.ledger[k] = { income: 0, transactions: [] };
+      return d.ledger[k];
+    },
+    saveLedger(y, m, data) {
+      const d = this.load();
+      d.ledger[`${y}-${m}`] = data;
+      this.save(d);
+    },
+    getInvestments(y, m) {
+      const d = this.load();
+      const k = `${y}-${m}`;
+      if (!d.investments[k]) d.investments[k] = [];
+      return d.investments[k];
+    },
+    saveInvestments(y, m, data) {
+      const d = this.load();
+      d.investments[`${y}-${m}`] = data;
+      this.save(d);
+    },
+    getYearLedger(y) {
+      const d = this.load();
+      return MONTHS.map((_, i) => d.ledger[`${y}-${i}`] || { income: 0, transactions: [] });
+    },
+    getYearInvestments(y) {
+      const d = this.load();
+      return MONTHS.map((_, i) => d.investments[`${y}-${i}`] || []);
+    }
+  };
+
+  // ---- CONTROL DE AUTENTICACIÓN (CORREGIDO A LOCALSTORAGE) ----
+  const LS_SESSION_KEY = "michell_user_session";
+
+  function initAuth() {
+    const activeSession = localStorage.getItem(LS_SESSION_KEY);
+    if (activeSession === AUTH_CONFIG.username) {
+      bootApp(activeSession);
+    } else {
+      document.getElementById("view-login").style.display = "flex";
+      document.getElementById("view-app").style.display = "none";
+    }
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const u = document.getElementById("login-user").value.trim();
+    const p = document.getElementById("login-pass").value.trim();
+
+    if (u === AUTH_CONFIG.username && p === AUTH_CONFIG.password) {
+      localStorage.setItem(LS_SESSION_KEY, u);
+      showToast("Access granted. Welcome back.", "success");
+      bootApp(u);
+    } else {
+      showToast("Invalid credentials pattern verified. Access denied.", "error");
+    }
+  }
+
+  function handleLogout() {
+    localStorage.removeItem(LS_SESSION_KEY);
+    document.getElementById("view-app").style.display = "none";
+    document.getElementById("view-login").style.display = "flex";
+    document.getElementById("login-form").reset();
+  }
+
+  function bootApp(username) {
+    document.getElementById("view-login").style.display = "none";
+    document.getElementById("view-app").style.display = "block";
+    document.getElementById("user-badge-name").textContent = username;
+
+    const savedUrl = localStorage.getItem("michell_sheets_url");
+    if (savedUrl) {
+      document.getElementById("sync-url-input").value = savedUrl;
+      syncGoogleSheets(savedUrl, false);
+    }
+    initApp();
+  }
+
+  // ---- MÓDULO GOOGLE SHEETS SYNC ----
+  function handleSyncTrigger() {
+    const url = document.getElementById("sync-url-input").value.trim();
+    if (!url) {
+      showToast("Please provide a valid URL endpoint.", "error");
+      return;
+    }
+    localStorage.setItem("michell_sheets_url", url);
+    syncGoogleSheets(url, true);
+  }
+
+  async function syncGoogleSheets(url, userTriggered = true) {
+    const btn = document.getElementById("btn-sync-trigger");
+    if (btn) { btn.textContent = "Syncing..."; btn.disabled = true; }
+
+    try {
+      const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+      const res = await fetch(proxyUrl);
+      if (!res.ok) throw new Error("Network resolution failed.");
+      const csvText = await res.text();
+
+      parseSheetsCSV(csvText);
+      showToast("Remote compilation synchronized successfully.", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Sincronización fallida. Verifique la publicación del enlace como CSV.", "error");
+    } finally {
+      if (btn) { btn.textContent = "Sync Now"; btn.disabled = false; }
+    }
+  }
+
+  function parseSheetsCSV(text) {
+    const rows = text.split(/\r?\n/);
+    if(rows.length < 2) return;
+
+    const parsedTxs = [];
+    const parsedInvs = [];
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i].trim();
+      if (!row) continue;
+
+      const cols = row.split(",").map(c => c.replace(/^"|"$/g, "").trim());
+
+      if (cols.length === 5) {
+        // Transactions Map
+        const [date, desc, cat, type, amount] = cols;
+        if (!date || isNaN(parseFloat(amount))) continue;
+        parsedTxs.push({ id: `sheets-${i}`, date, desc, cat, type: type.toLowerCase(), amount: parseFloat(amount), src: "sheets" });
+      } else if (cols.length === 6) {
+        // Investments Map
+        const [date, asset, type, capital, current, profit] = cols;
+        if (!date || isNaN(parseFloat(capital))) continue;
+        parsedInvs.push({ id: `sheets-inv-${i}`, date, asset, type, capital: parseFloat(capital), currentValue: parseFloat(current), src: "sheets" });
+      }
+    }
+
+    const currentDB = DB.load();
+
+    if (parsedTxs.length > 0) {
+      currentDB.ledger = {};
+      parsedTxs.forEach(tx => {
+        const dObj = new Date(tx.date + "T00:00:00");
+        if(isNaN(dObj.getTime())) return;
+        const y = dObj.getFullYear();
+        const m = dObj.getMonth();
+        const k = `${y}-${m}`;
+
+        if (!currentDB.ledger[k]) currentDB.ledger[k] = { income: 0, transactions: [] };
         
-        <form id="loginForm" onsubmit="handleLogin(event)">
-            <div class="input-group">
-                <label for="username">Usuario</label>
-                <div class="input-wrapper">
-                    <i data-lucide="user"></i>
-                    <input type="text" id="username" required placeholder="Ingrese su usuario">
-                </div>
-            </div>
-            
-            <div class="input-group">
-                <label for="password">Contraseña</label>
-                <div class="input-wrapper">
-                    <i data-lucide="lock"></i>
-                    <input type="password" id="password" required placeholder="••••••••">
-                </div>
-            </div>
-            
-            <button type="submit" class="btn-login">Iniciar Sesión</button>
-            <p id="errorMsg" class="error-msg">Usuario o contraseña incorrectos.</p>
-        </form>
-    </div>
-
-    <!-- MÓDULO DASHBOARD -->
-    <div id="dashboardView" class="dashboard">
-        <header>
-            <div>
-                <h1 style="font-size: 1.5rem; margin: 0;">Panel Corporativo</h1>
-                <p style="color: var(--text-muted); font-size: 0.85rem;">Bienvenido al sistema financiero</p>
-            </div>
-            <div class="user-info">
-                <span id="displayUser" style="font-weight: 600; color: var(--gold);"></span>
-                <button class="btn-logout" onclick="handleLogout()">
-                    <i data-lucide="log-out" style="width: 16px; height: 16px;"></i> Salir
-                </button>
-            </div>
-        </header>
-
-        <main class="grid">
-            <div class="card">
-                <div class="card-header">
-                    <span>Capital Total Privado</span>
-                    <i data-lucide="wallet" style="color: var(--gold)"></i>
-                </div>
-                <div class="card-value">$2,450,000 USD</div>
-                <div class="card-footer"><i data-lucide="trending-up" style="width:16px;"></i> +12.4% este mes</div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <span>Rendimiento Anual</span>
-                    <i data-lucide="bar-chart-3" style="color: var(--gold)"></i>
-                </div>
-                <div class="card-value">18.6% APY</div>
-                <div class="card-footer"><i data-lucide="shield" style="width:16px;"></i> Portafolio Asegurado</div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <span>Inversiones Activas</span>
-                    <i data-lucide="briefcase" style="color: var(--gold)"></i>
-                </div>
-                <div class="card-value">14 Proyectos</div>
-                <div class="card-footer" style="color: var(--text-muted)">Diversificado en Real Estate & Tech</div>
-            </div>
-        </main>
-    </div>
-
-    <script>
-        // Inicializar Iconos Lucide
-        lucide.createIcons();
-
-        // Configuración de Seguridad
-        const AUTH_USER = "michellpf";
-        const AUTH_PASS = "3360076";
-        const LS_SESSION = "app_user_logged"; // Nombre clave en almacenamiento
-
-        // Vista de Elementos del DOM
-        const loginView = document.getElementById('loginView');
-        const dashboardView = document.getElementById('dashboardView');
-        const errorMsg = document.getElementById('errorMsg');
-        const displayUser = document.getElementById('displayUser');
-
-        // Control de Sesión - COMPROBACIÓN INICIAL (CORREGIDO CON LOCALSTORAGE)
-        function initAuth() {
-            const saved = localStorage.getItem(LS_SESSION);[cite: 5]
-            if (saved === AUTH_USER) {
-                showDashboard(saved);
-            } else {
-                showLogin();
-            }
+        if (tx.cat.toLowerCase() === "income" && tx.desc.toLowerCase().includes("base")) {
+          currentDB.ledger[k].income = tx.amount;
+        } else {
+          currentDB.ledger[k].transactions.push(tx);
         }
+      });
+    }
 
-        // Manejador del Formulario de Ingreso
-        function handleLogin(e) {
-            e.preventDefault();
-            const u = document.getElementById('username').value.trim();
-            const p = document.getElementById('password').value.trim();
+    if (parsedInvs.length > 0) {
+      currentDB.investments = {};
+      parsedInvs.forEach(inv => {
+        const dObj = new Date(inv.date + "T00:00:00");
+        if(isNaN(dObj.getTime())) return;
+        const y = dObj.getFullYear();
+        const m = dObj.getMonth();
+        const k = `${y}-${m}`;
 
-            if (u === AUTH_USER && p === AUTH_PASS) {
-                localStorage.setItem(LS_SESSION, u); // Guarda sesión de forma segura[cite: 5]
-                errorMsg.style.display = 'none';
-                showDashboard(u);
-            } else {
-                errorMsg.style.display = 'block';
-                // Animación de error por mala contraseña
-                loginView.style.transform = 'translateX(10px)';
-                setTimeout(() => loginView.style.transform = 'translateX(-10px)', 100);
-                setTimeout(() => loginView.style.transform = 'translateX(0)', 200);
-            }
+        if (!currentDB.investments[k]) currentDB.investments[k] = [];
+        currentDB.investments[k].push(inv);
+      });
+    }
+
+    DB.save(currentDB);
+    renderLedger();
+    renderInvestments();
+    renderAnnual();
+  }
+
+  // NAVIGATION CONTROL
+  function switchTab(tabId) {
+    document.querySelectorAll(".menu button").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".app-section").forEach(s => s.classList.remove("active"));
+    
+    document.getElementById(`nav-${tabId}`).classList.add("active");
+    document.getElementById(`section-${tabId}`).classList.add("active");
+
+    if (tabId === "ledger") renderLedger();
+    if (tabId === "investments") renderInvestments();
+    if (tabId === "annual") renderAnnual();
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // TIMELINES CONFIG
+  // ═══════════════════════════════════════════════════════════════
+  let ledgerYear = 2026, ledgerMonth = 5;
+  let invYear = 2026, invMonth = 5;
+  let annualYear = 2026;
+
+  function initTimelineSelectors() {
+    const years = [2028, 2027, 2026, 2025, 2024, 2023, 2022, 2021, 2020];
+    
+    const ly = document.getElementById("ledger-year");
+    const iy = document.getElementById("inv-year");
+    const ay = document.getElementById("annual-year-select");
+
+    ly.innerHTML = years.map(y => `<option value="${y}" ${y===ledgerYear?'selected':''}>${y}</option>`).join("");
+    iy.innerHTML = years.map(y => `<option value="${y}" ${y===invYear?'selected':''}>${y}</option>`).join("");
+    ay.innerHTML = years.map(y => `<option value="${y}" ${y===annualYear?'selected':''}>${y}</option>`).join("");
+
+    renderMonthGrids();
+  }
+
+  function renderMonthGrids() {
+    const lm = document.getElementById("ledger-months");
+    const im = document.getElementById("inv-months");
+
+    lm.innerHTML = MONTHS.map((m, i) => `<button id="l-m-${i}" class="${i===ledgerMonth?'active':''}" onclick="setLedgerMonth(${i})">${m}</button>`).join("");
+    im.innerHTML = MONTHS.map((m, i) => `<button id="i-m-${i}" class="${i===invMonth?'active':''}" onclick="setInvMonth(${i})">${m}</button>`).join("");
+  }
+
+  function setLedgerMonth(m) { ledgerMonth = m; renderMonthGrids(); renderLedger(); }
+  function setInvMonth(m) { invMonth = m; renderMonthGrids(); renderInvestments(); }
+
+  function changeLedgerTimeline() { ledgerYear = parseInt(document.getElementById("ledger-year").value); renderLedger(); }
+  function changeInvTimeline() { invYear = parseInt(document.getElementById("inv-year").value); renderInvestments(); }
+  function changeAnnualTimeline() { annualYear = parseInt(document.getElementById("annual-year-select").value); renderAnnual(); }
+
+  // ═══════════════════════════════════════════════════════════════
+  // MODULE 1: MONTHLY FINANCIAL LEDGER
+  // ═══════════════════════════════════════════════════════════════
+  function initLedger() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("tx-date").value = today;
+    renderLedger();
+  }
+
+  function saveBaseIncome(e) {
+    e.preventDefault();
+    const val = parseFloat(document.getElementById("form-base-income").value);
+    if(isNaN(val) || val < 0) return;
+
+    const data = DB.getLedger(ledgerYear, ledgerMonth);
+    data.income = val;
+    DB.saveLedger(ledgerYear, ledgerMonth, data);
+    
+    showToast("Allocation allocation processed successfully.", "success");
+    renderLedger();
+  }
+
+  function addTransaction(e) {
+    e.preventDefault();
+    const date = document.getElementById("tx-date").value;
+    const desc = document.getElementById("tx-desc").value.trim();
+    const cat = document.getElementById("tx-cat").value;
+    const type = document.getElementById("tx-type").value;
+    const amount = parseFloat(document.getElementById("tx-amount").value);
+
+    if(!date || !desc || isNaN(amount) || amount <= 0) return;
+
+    const dObj = new Date(date + "T00:00:00");
+    const y = dObj.getFullYear();
+    const m = dObj.getMonth();
+
+    const data = DB.getLedger(y, m);
+    data.transactions.push({ id: 'tx-'+uid(), date, desc, cat, type, amount });
+    DB.saveLedger(y, m, data);
+
+    showToast("Entry tracked successfully.", "success");
+    document.getElementById("tx-desc").value = "";
+    document.getElementById("tx-amount").value = "";
+    
+    if (y === ledgerYear && m === ledgerMonth) renderLedger();
+  }
+
+  function deleteTransaction(id) {
+    const data = DB.getLedger(ledgerYear, ledgerMonth);
+    data.transactions = data.transactions.filter(t => t.id !== id);
+    DB.saveLedger(ledgerYear, ledgerMonth, data);
+    showToast("Transaction record removed.", "info");
+    renderLedger();
+  }
+
+  function renderLedger() {
+    const data = DB.getLedger(ledgerYear, ledgerMonth);
+    document.getElementById("form-base-income").value = data.income || "";
+
+    let totalIn = 0;
+    let totalOut = 0;
+
+    const tbody = document.getElementById("ledger-table-body");
+    tbody.innerHTML = "";
+
+    if (data.transactions.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px 0;">No active ledger logs recorded for ${MONTHS_FULL[ledgerMonth]} ${ledgerYear}.</td></tr>`;
+    } else {
+      // Sort array dates
+      data.transactions.sort((a,b) => new Date(a.date) - new Date(b.date));
+      data.transactions.forEach(t => {
+        if(t.type === 'income') totalIn += t.amount;
+        else totalOut += t.amount;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="font-variant-numeric: tabular-nums;">${t.date}</td>
+          <td>${t.desc}${t.src === 'sheets' ? '<span class="badge-src">Sheets</span>' : ''}</td>
+          <td><span style="font-size:0.75rem; background:var(--ivory-deep); padding:3px 8px; border-radius:4px; font-weight:500;">${t.cat}</span></td>
+          <td style="text-transform:uppercase; font-size:0.7rem; font-weight:600;">${t.type}</td>
+          <td class="${t.type==='income'?'amount-in':'amount-out'}">${t.type==='income'?'+':'-'} ${fmt(t.amount)}</td>
+          <td><button style="background:none;border:none;color:#D96B6B;cursor:pointer;font-weight:600;" onclick="deleteTransaction('${t.id}')">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    const netAllocation = (data.income || 0) + totalIn;
+    const balance = netAllocation - totalOut;
+
+    document.getElementById("metric-income").textContent = fmt(netAllocation);
+    document.getElementById("metric-income-sub").textContent = `Base: ${fmt(data.income)} · Direct: ${fmt(totalIn)}`;
+    document.getElementById("metric-expenses").textContent = fmt(totalOut);
+    document.getElementById("metric-expenses-sub").textContent = `${data.transactions.filter(t=>t.type==='expense').length} expense logs optimized`;
+    document.getElementById("metric-net").textContent = fmt(balance);
+    document.getElementById("metric-net-sub").textContent = balance >= 0 ? "Surplus capital optimization" : "Deficit structural warning";
+
+    // TRAFFIC LIGHT HEALTH ARCHITECTURE
+    const light = document.getElementById("ledger-health-light");
+    const htext = document.getElementById("ledger-health-text");
+    
+    const pct = netAllocation > 0 ? (totalOut / netAllocation) * 100 : (totalOut > 0 ? 100 : 0);
+
+    light.className = "health-light";
+    if (pct <= 50) {
+      light.classList.add("green");
+      htext.innerHTML = `<h4>Excellent Status — Savings Velocity High (${pct.toFixed(1)}%)</h4><p>Operational expenses remain below 50% threshold allocation. Excellent structural retention capabilities.</p>`;
+    } else if (pct <= 80) {
+      light.classList.add("yellow");
+      htext.innerHTML = `<h4>Controlled Status — Mitigation Alert (${pct.toFixed(1)}%)</h4><p>Efficiency bandwidth narrowing. Review unessential categorical flows to secure macro retention metrics.</p>`;
+    } else {
+      light.classList.add("red");
+      htext.innerHTML = `<h4>Structural Deficit — Capital Destruction Warning (${pct.toFixed(1)}%)</h4><p>Burn rate exceeding safe fiscal tolerances. Immediate adjustments recommended to preserve capital runway.</p>`;
+    }
+
+    // TAILORED ADVICE ENGINE
+    const adviceArea = document.getElementById("ledger-advice-area");
+    let adviceHtml = "";
+    if (pct > 80) {
+      adviceHtml = `<div class="advice-box"><h4>Strategic Action Framework</h4><p>Your burn rate is critical for ${MONTHS_FULL[ledgerMonth]}. Eliminate non-essential categorical outflows immediately. Focus operational liquidity purely toward fixed programmatic baseline structures to stabilize cash preservation velocity.</p></div>`;
+    } else if (pct > 50) {
+      adviceHtml = `<div class="advice-box" style="background:#F2EBD9"><h4>Tactical Allocation Optimization</h4><p>Your allocation metrics show decent stability, but expansion limits remain narrow. Defer major optional consumer allocations until capital buffers recover to target baseline configurations.</p></div>`;
+    } else {
+      adviceHtml = `<div class="advice-box" style="background:#E2EFE7"><h4>Capital Deployment Insights</h4><p>Outstanding structural management. With capital retention exceeding 50%, you are positioned for asset accumulation. Consider routing the idle surplus allocation into productive investment tranches to accelerate compounded return parameters.</p></div>`;
+    }
+    adviceArea.innerHTML = adviceHtml;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // MODULE 2: INVESTMENT & ROI TRACKER
+  // ═══════════════════════════════════════════════════════════════
+  function initInvestments() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("inv-date").value = today;
+    renderInvestments();
+  }
+
+  function addInvestment(e) {
+    e.preventDefault();
+    const date = document.getElementById("inv-date").value;
+    const asset = document.getElementById("inv-asset").value.trim();
+    const type = document.getElementById("inv-type").value;
+    const capital = parseFloat(document.getElementById("inv-capital").value);
+    const current = parseFloat(document.getElementById("inv-current-val").value);
+
+    if(!date || !asset || isNaN(capital) || isNaN(current) || capital <= 0) return;
+
+    const dObj = new Date(date + "T00:00:00");
+    const y = dObj.getFullYear();
+    const m = dObj.getMonth();
+
+    const data = DB.getInvestments(y, m);
+    data.push({ id: 'inv-'+uid(), date, asset, type, capital, currentValue: current });
+    DB.saveInvestments(y, m, data);
+
+    showToast("Portfolio deployment asset logged.", "success");
+    document.getElementById("inv-asset").value = "";
+    document.getElementById("inv-capital").value = "";
+    document.getElementById("inv-current-val").value = "";
+
+    if(y === invYear && m === invMonth) renderInvestments();
+  }
+
+  function deleteInvestment(id) {
+    const data = DB.getInvestments(invYear, invMonth);
+    const updated = data.filter(i => i.id !== id);
+    DB.saveInvestments(invYear, invMonth, updated);
+    showToast("Asset listing removed.", "info");
+    renderInvestments();
+  }
+
+  function renderInvestments() {
+    const data = DB.getInvestments(invYear, invMonth);
+    const tbody = document.getElementById("inv-table-body");
+    tbody.innerHTML = "";
+
+    let totalCap = 0;
+    let totalCur = 0;
+
+    if(data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px 0;">No active portfolio positions cataloged for ${MONTHS_FULL[invMonth]} ${invYear}.</td></tr>`;
+    } else {
+      data.sort((a,b) => new Date(a.date) - new Date(b.date));
+      data.forEach(i => {
+        totalCap += i.capital;
+        totalCur += i.currentValue;
+
+        const profit = i.currentValue - i.capital;
+        const roi = (profit / i.capital) * 100;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="font-variant-numeric: tabular-nums;">${i.date}</td>
+          <td style="font-weight:500;">${i.asset}${i.src==='sheets'?'<span class="badge-src">Sheets</span>':''}</td>
+          <td><span style="font-size:0.75rem; background:var(--ivory-deep); padding:3px 8px; border-radius:4px;">${i.type}</span></td>
+          <td style="font-variant-numeric: tabular-nums;">${fmt(i.capital)}</td>
+          <td style="font-variant-numeric: tabular-nums;">${fmt(i.currentValue)}</td>
+          <td style="font-variant-numeric: tabular-nums;" class="${profit>=0?'amount-in':'amount-out'}">${profit>=0?'+':''}${fmt(profit)}</td>
+          <td style="font-variant-numeric: tabular-nums; font-weight:600;" class="${roi>=0?'amount-in':'amount-out'}">${roi>=0?'+':''}${roi.toFixed(2)}%</td>
+          <td><button style="background:none;border:none;color:#D96B6B;cursor:pointer;font-weight:600;" onclick="deleteInvestment('${i.id}')">Remove</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    const netProfit = totalCur - totalCap;
+    const netRoi = totalCap > 0 ? (netProfit / totalCap) * 100 : 0;
+
+    document.getElementById("metric-inv-capital").textContent = fmt(totalCap);
+    document.getElementById("metric-inv-current").textContent = fmt(totalCur);
+    document.getElementById("metric-inv-roi").textContent = (netProfit >= 0 ? "+ " : "") + fmt(netProfit);
+    
+    const roiEl = document.getElementById("metric-inv-roi-pct");
+    roiEl.textContent = `${netRoi >= 0 ? '+' : ''}${netRoi.toFixed(2)}% Aggregate Yield`;
+    roiEl.className = `sub ${netRoi >= 0 ? 'amount-in' : 'amount-out'}`;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // MODULE 3: ANNUAL OVERVIEW & DASHBOARD
+  // ═══════════════════════════════════════════════════════════════
+  let chartCashflowInstance = null;
+  let chartCategoriesInstance = null;
+  let chartSavingsInstance = null;
+
+  function initAnnual() {
+    renderAnnual();
+  }
+
+  function renderAnnual() {
+    const ledgerData = DB.getYearLedger(annualYear);
+    const invData = DB.getYearInvestments(annualYear);
+
+    const monthlyIncomes = [];
+    const monthlyExpenses = [];
+    const monthlySavings = [];
+    const categoryTotals = {};
+
+    let annualIncome = 0;
+    let annualExpenses = 0;
+    let invCapital = 0;
+    let invCurrent = 0;
+
+    ledgerData.forEach((month, idx) => {
+      let directIn = 0;
+      let exp = 0;
+      
+      month.transactions.forEach(t => {
+        if(t.type === 'income') directIn += t.amount;
+        else {
+          exp += t.amount;
+          categoryTotals[t.cat] = (categoryTotals[t.cat] || 0) + t.amount;
         }
+      });
 
-        // Cerrar Sesión (CORREGIDO CON LOCALSTORAGE)
-        function handleLogout() {
-            localStorage.removeItem(LS_SESSION); // Limpia la sesión[cite: 5]
-            showLogin();
-            // Limpia el formulario
-            document.getElementById('loginForm').reset();
+      const totalIn = (month.income || 0) + directIn;
+      const sav = totalIn - exp;
+
+      monthlyIncomes.push(totalIn);
+      monthlyExpenses.push(exp);
+      monthlySavings.push(sav);
+
+      annualIncome += totalIn;
+      annualExpenses += exp;
+    });
+
+    invData.forEach(month => {
+      month.forEach(i => {
+        invCapital += i.capital;
+        invCurrent += i.currentValue;
+      });
+    });
+
+    renderCashflowChart(monthlyIncomes, monthlyExpenses);
+    renderCategoriesChart(categoryTotals);
+    renderSavingsChart(monthlySavings);
+    renderConsultingReport(annualIncome, annualExpenses, invCapital, invCurrent);
+  }
+
+  function renderCashflowChart(inc, exp) {
+    const ctx = document.getElementById("chart-annual-cashflow").getContext("2d");
+    if(chartCashflowInstance) chartCashflowInstance.destroy();
+
+    chartCashflowInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: MONTHS,
+        datasets: [
+          { label: 'Total Inflow', data: inc, backgroundColor: '#7BAFD4', borderRadius: 4 },
+          { label: 'Total Outflow', data: exp, backgroundColor: '#EEEBE3', borderRadius: 4 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { font: { family: 'DM Sans', size: 11 } } },
+          title: { display: true, text: 'Macro Liquidity Optimization Matrix', font: { family: 'Cormorant Garamond', size: 16, weight: '400' }, color: '#2C3539' }
+        },
+        scales: {
+          y: { grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { font: { family: 'DM Sans', size: 9 } } },
+          x: { grid: { display: false }, ticks: { font: { family: 'DM Sans', size: 10, weight: 600 } } }
         }
+      }
+    });
+  }
 
-        // Cambios visuales de Interfaz
-        function showDashboard(user) {
-            loginView.classList.add('hidden');
-            dashboardView.style.display = 'block';
-            displayUser.textContent = user;
+  function renderCategoriesChart(catMap) {
+    const ctx = document.getElementById("chart-annual-categories").getContext("2d");
+    if(chartCategoriesInstance) chartCategoriesInstance.destroy();
+
+    const labels = Object.keys(catMap);
+    const data = Object.values(catMap);
+
+    if(labels.length === 0) { labels.push("No Outflows"); data.push(1); }
+
+    const palette = ['#7BAFD4', '#A8CCE8', '#4F8DB4', '#C3D7E6', '#EEEBE3', '#D0C9BC', '#A2BAC9', '#E0DCD3'];
+
+    chartCategoriesInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{ data: data, backgroundColor: palette.slice(0, labels.length), borderHeight: 1, borderColor: '#FAFAF7' }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { font: { family: 'DM Sans', size: 10 } } },
+          title: { display: true, text: 'Structural Outflow Concentration', font: { family: 'Cormorant Garamond', size: 16, weight: '400' }, color: '#2C3539' }
         }
+      }
+    });
+  }
 
-        function showLogin() {
-            dashboardView.style.display = 'none';
-            loginView.classList.remove('hidden');
+  function renderSavingsChart(sav) {
+    const ctx = document.getElementById("chart-annual-savings").getContext("2d");
+    if(chartSavingsInstance) chartSavingsInstance.destroy();
+
+    chartSavingsInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: MONTHS,
+        datasets: [{
+          label: 'Net Retained Velocity',
+          data: sav,
+          backgroundColor: sav.map(v => v >= 0 ? 'rgba(107, 217, 156, 0.7)' : 'rgba(217, 107, 107, 0.7)'),
+          borderColor: sav.map(v => v >= 0 ? '#6BD99C' : '#D96B6B'),
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          title: { display: true, text: 'Net Capital Accumulation Velocity', font: { family: 'Cormorant Garamond', size: 16, weight: '400' }, color: '#2C3539' }
+        },
+        scales: {
+          y: { grid: { color: 'rgba(0,0,0,0.03)' } },
+          x: { grid: { display: false } }
         }
+      }
+    });
+  }
 
-        // Arrancar la verificación al cargar la página
-        window.onload = initAuth;
-    </script>
+  function renderConsultingReport(income, expenses, invCapital, invCurrent) {
+    const el = document.getElementById("annual-report-target");
+    const savings = income - expenses;
+    const savingsRate = income > 0 ? (savings / income) * 100 : 0;
+
+    const invProfit = invCurrent - invCapital;
+    const invROI = invCapital > 0 ? (invProfit / invCapital) * 100 : 0;
+
+    const insights = [
+      { label: "Aggregate Net Volume", val: fmt(income), desc: `Gross optimized capital capacity.` },
+      { label: "Structural Efficiencies", val: `${savingsRate.toFixed(1)}%`, desc: `Net margin capital retention benchmark.` },
+      { label: "Asset Compounding ROI", val: `${invROI.toFixed(2)}%`, desc: `Tactical yield generation efficiency.` }
+    ];
+
+    const advice = [];
+    if(savingsRate > 40) {
+      advice.push(`🟢 <strong>Elite Retention Velocity:</strong> Your structural alignment parameters are performing at institutional standards. Capital protection thresholds are highly secured.`);
+    } else if (savingsRate > 15) {
+      advice.push(`🟡 <strong>Balanced Structural Foundation:</strong> Stabilization goals met. To leverage compounding dynamics efficiently, aim to scale compression targets another 5-10% to expand investment runways.`);
+    } else {
+      advice.push(`🔴 <strong>Structural Liquidity Compression:</strong> High capital exposure detected. Retained allocation limits are shallow, presenting micro systemic vulnerability to unforeseen variable constraints.`);
+    }
+
+    if (expenses > 0) {
+      const emergencyFundMonths = savings / (expenses / 12 || 1);
+      advice.push(`🛡️ <strong>Liquidity Runway Analysis:</strong> At present spend-velocity baselines, current annual retention patterns maintain a safety multiplier capability of ${emergencyFundMonths.toFixed(1)} months of operational safety coverage.`);
+    }
+
+    if (invCapital > 0) {
+      advice.push(`📊 <strong>Portfolio Capital Velocity:</strong> You have effectively transitioned ${fmt(invCapital)} out of depreciating cash structures and into productive asset tranches, achieving a premium compounding rate.`);
+    } else {
+      advice.push(`💡 <strong>Productive Capital Friction:</strong> Your portfolio displays zero active risk allocation. Maintaining total balance structures in flat fiat accounts exposes structural assets to inflationary degradation.`);
+    }
+    advice.push(`📅 <strong>Strategic Roadmap Forward:</strong> Optimize financial metrics systematically on a rolling quarterly cycle. Target a progressive savings expansion benchmark of ${fmt(savings*1.2)} for the upcoming macro cycle.`);
+
+    el.innerHTML = `
+      <h2>Strategic Financial Report</h2>
+      <div class="sub">Annual Analytical Consulting · ${annualYear}</div>
+      <div class="consulting-insights">
+        ${insights.map(i=>`
+          <div class="insight-item">
+            <div class="insight-label">${i.label}</div>
+            <div class="insight-val">${i.val}</div>
+            <div class="insight-desc">${i.desc}</div>
+          </div>`).join("")}
+      </div>
+      <div class="annual-advice">
+        ${advice.map(a=>`<div class="advice-item">${a}</div>`).join("")}
+      </div>`;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // INITIALIZATION ENGINE
+  // ═══════════════════════════════════════════════════════════════
+  function initApp() {
+    initTimelineSelectors();
+    initLedger();
+    initInvestments();
+    initAnnual();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initAuth();
+  });
+  </script>
 </body>
 </html>
