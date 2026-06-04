@@ -645,41 +645,13 @@ tr.row-savings td:not(.rn) { background:#F0F4FF !important; }
    Auth: SHA-256 hashed credentials — no plaintext anywhere
 ═══════════════════════════════════════════════════════════════ */
 
-/* ── AUTH — SHA-256 HASH SYSTEM ────────────────────────────────
-   Credentials are stored ONLY as SHA-256 hashes computed at runtime.
-   Nothing in this file can be reversed to recover the originals.
-   To change credentials:
-     1. Open browser console on this page
-     2. Run: sha256("newUsername").then(h => console.log("user:", h))
-     3. Run: sha256("newPassword").then(h => console.log("pass:", h))
-     4. Paste those hex strings into AUTH_HASHES below
+/* ── AUTH ────────────────────────────────────────────────────────
+   Credentials stored as Base64 — not plaintext-readable at a glance.
+   Works in file://, http:// and https:// — no browser API required.
+   To change: run btoa("newvalue") in browser console, paste result below.
 ─────────────────────────────────────────────────────────────── */
-const AUTH_HASHES = {
-  username: "pending",
-  password: "pending"
-};
-
-/* Hash any string with SubtleCrypto (built into every modern browser) */
-async function sha256(str) {
-  const buf = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(str)
-  );
-  return Array.from(new Uint8Array(buf))
-    .map(b => b.toString(16).padStart(2,"0"))
-    .join("");
-}
-
-/* Bootstrap: compute and lock hashes once on page load */
-let _hashesReady = false;
-async function getHashes() {
-  if (_hashesReady) return;
-  /* Credentials live here and only here — computed immediately into hashes,
-     never stored as strings anywhere else in the app or in localStorage */
-  AUTH_HASHES.username = await sha256("michellpf");
-  AUTH_HASHES.password = await sha256("3360076");
-  _hashesReady = true;
-}
+const _cx = { u: atob("bWljaGVsbHBm"), p: atob("MzM2MDA3Ng==") };
+function _chk(u, p){ return u === _cx.u && p === _cx.p; }
 const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 const MONTHS_FULL = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 const CATEGORIES  = ["Income","Food","Housing","Transport","Health","Entertainment","Savings","Other"];
@@ -756,25 +728,19 @@ function toast(msg, type="info", duration=4500){
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   AUTH — async SHA-256 comparison, zero plaintext exposure
+   AUTH
 ═══════════════════════════════════════════════════════════════ */
-async function initAuth(){
-  /* Pre-compute hashes on load so first login is instant */
-  await getHashes();
-
+function initAuth(){
   document.getElementById("li-btn").addEventListener("click", doLogin);
   document.getElementById("li-pass").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
-
-  /* Restore session — store only the hashed username, never plaintext */
   const s = localStorage.getItem(LS_SESSION);
-  if(s && s === AUTH_HASHES.username){ bootApp(); }
+  if(s === "mf_ok"){ bootApp(); }
 }
 
-async function doLogin(){
+function doLogin(){
   const u   = document.getElementById("li-user").value.trim();
   const p   = document.getElementById("li-pass").value;
   const err = document.getElementById("login-err");
-  const btn = document.getElementById("li-btn");
 
   if(!u || !p){
     err.textContent = "Ingresa usuario y contraseña.";
@@ -782,24 +748,15 @@ async function doLogin(){
     return;
   }
 
-  btn.disabled = true;
-  btn.textContent = "Verificando...";
-
-  /* Hash what the user typed, then compare — never compare plaintext */
-  const [hashU, hashP] = await Promise.all([sha256(u), sha256(p)]);
-
-  if(hashU === AUTH_HASHES.username && hashP === AUTH_HASHES.password){
+  if(_chk(u, p)){
     err.classList.remove("show");
-    /* Store the hashed username as session token — not the plaintext */
-    localStorage.setItem(LS_SESSION, AUTH_HASHES.username);
+    localStorage.setItem(LS_SESSION, "mf_ok");
     bootApp();
   } else {
     err.textContent = "Usuario o contraseña incorrectos.";
     err.classList.add("show");
     document.getElementById("li-pass").value = "";
     document.getElementById("li-pass").focus();
-    btn.disabled = false;
-    btn.textContent = "Acceder";
   }
 }
 
