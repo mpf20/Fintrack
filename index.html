@@ -1,2036 +1,381 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aurelius · Personal Finance</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inversiones de Capital S.A.S.</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+    <style>
+        :root {
+            --gold-light: #f3e5ab;
+            --gold: #d4af37;
+            --gold-dark: #aa7c11;
+            --bg-dark: #0f141d;
+            --bg-card: #17202e;
+            --text-light: #f0f4f8;
+            --text-muted: #8fa0b5;
+        }
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
 
-  <style>
-    /* ═══════════════════════════════════════════════════════════════
-       CSS DESIGN TOKENS
-    ═══════════════════════════════════════════════════════════════ */
-    :root {
-      --ivory:        #F7F5F0;
-      --ivory-deep:   #EEEBE3;
-      --ivory-card:   #FAFAF7;
-      --blue:         #7BAFD4;
-      --blue-light:   #A8CCE8;
-      --blue-deep:    #4F8DB4;
-      --blue-muted:   #C8DFF0;
-      --gray-100:     #F0EDE8;
-      --gray-200:     #DDD9D0;
-      --gray-400:     #A09890;
-      --gray-600:     #6B6560;
-      --gray-800:     #3A3530;
-      --green:        #6BAE8E;
-      --green-light:  #D4EDE2;
-      --yellow:       #D4A843;
-      --yellow-light: #FBF0D0;
-      --red:          #C06060;
-      --red-light:    #F5DADA;
-      --sheets-green: #1e7e34;
-      --sheets-bg:    #E8F5E9;
-      --shadow-sm:    0 1px 3px rgba(58,53,48,.06), 0 1px 2px rgba(58,53,48,.04);
-      --shadow-md:    0 4px 16px rgba(58,53,48,.08), 0 2px 6px rgba(58,53,48,.05);
-      --shadow-lg:    0 12px 40px rgba(58,53,48,.12), 0 4px 12px rgba(58,53,48,.07);
-      --radius-sm:    6px;
-      --radius-md:    12px;
-      --radius-lg:    20px;
-      --t:            0.22s cubic-bezier(0.4,0,0.2,1);
-      --font-d:       'Cormorant Garamond', Georgia, serif;
-      --font-b:       'DM Sans', system-ui, sans-serif;
-    }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: var(--font-b);
-      background: var(--ivory);
-      color: var(--gray-800);
-      min-height: 100vh;
-      font-size: 14px;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-    }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 99px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+        /* --- VISTA DE LOGIN --- */
+        .login-container {
+            background: linear-gradient(135deg, var(--bg-card) 0%, #0d131a 100%);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 3rem 2rem;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
 
-    /* ═══════════════════════════════════════════════════════════════
-       LOGIN
-    ═══════════════════════════════════════════════════════════════ */
-    #login-screen {
-      position: fixed; inset: 0;
-      background: var(--ivory);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 1000;
-      transition: opacity .5s ease, visibility .5s ease;
-    }
-    #login-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .login-wrap { width: 100%; max-width: 420px; padding: 0 24px; animation: fadeUp .6s ease both; }
-    .login-brand { text-align: center; margin-bottom: 40px; }
-    .login-brand .wordmark {
-      font-family: var(--font-d); font-size: 44px; font-weight: 300;
-      letter-spacing: .04em; color: var(--gray-800);
-    }
-    .login-brand .sub {
-      font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
-      color: var(--gray-400); margin-top: 4px;
-    }
-    .login-card {
-      background: var(--ivory-card); border: 1px solid var(--gray-200);
-      border-radius: var(--radius-lg); padding: 36px 32px; box-shadow: var(--shadow-lg);
-    }
-    .login-card h2 { font-family: var(--font-d); font-size: 22px; font-weight: 400; margin-bottom: 6px; }
-    .login-card > p { font-size: 13px; color: var(--gray-400); margin-bottom: 28px; }
-    .login-error {
-      display: none; padding: 10px 14px; border-radius: var(--radius-sm);
-      background: var(--red-light); color: var(--red); font-size: 13px;
-      margin-bottom: 16px; border: 1px solid rgba(192,96,96,.2);
-    }
-    .login-error.show { display: block; }
-    .login-hint { text-align: center; margin-top: 16px; font-size: 12px; color: var(--gray-400); }
+        .logo-icon {
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
 
-    /* ═══════════════════════════════════════════════════════════════
-       SHARED FORM ELEMENTS
-    ═══════════════════════════════════════════════════════════════ */
-    .form-group { margin-bottom: 18px; }
-    .form-group label {
-      display: block; font-size: 11px; font-weight: 600; letter-spacing: .1em;
-      text-transform: uppercase; color: var(--gray-600); margin-bottom: 8px;
-    }
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%; padding: 11px 14px;
-      border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
-      background: var(--ivory); color: var(--gray-800);
-      font-family: var(--font-b); font-size: 14px; outline: none;
-      transition: border-color var(--t), box-shadow var(--t);
-    }
-    .form-group input:focus, .form-group select:focus {
-      border-color: var(--blue); box-shadow: 0 0 0 3px rgba(123,175,212,.15);
-    }
-    .btn-primary {
-      width: 100%; padding: 13px; border: none; border-radius: var(--radius-sm);
-      background: var(--blue-deep); color: #fff;
-      font-family: var(--font-b); font-size: 14px; font-weight: 600; letter-spacing: .03em;
-      cursor: pointer; transition: background var(--t), transform var(--t), box-shadow var(--t);
-    }
-    .btn-primary:hover { background: var(--blue); box-shadow: 0 4px 14px rgba(79,141,180,.35); transform: translateY(-1px); }
-    .btn-primary:active { transform: translateY(0); }
+        h1 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+        }
 
-    /* ═══════════════════════════════════════════════════════════════
-       APP CHROME
-    ═══════════════════════════════════════════════════════════════ */
-    #app { display: none; flex-direction: column; min-height: 100vh; }
-    #app.active { display: flex; }
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 2.5rem;
+        }
 
-    .topbar {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(247,245,240,.93); backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--gray-200);
-      padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 60px;
-    }
-    .topbar-brand { font-family: var(--font-d); font-size: 24px; font-weight: 300; letter-spacing: .04em; }
-    .topbar-right { display: flex; align-items: center; gap: 14px; }
-    .topbar-user { font-size: 12px; color: var(--gray-600); letter-spacing: .05em; }
+        .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+            position: relative;
+        }
 
-    /* Sheets-linked badge in topbar */
-    .topbar-sync-badge {
-      display: none; align-items: center; gap: 6px;
-      padding: 4px 11px; border-radius: 99px;
-      background: var(--sheets-bg); color: var(--sheets-green);
-      font-size: 11px; font-weight: 600; letter-spacing: .04em;
-      border: 1px solid rgba(30,126,52,.2);
-    }
-    .topbar-sync-badge.visible { display: flex; }
-    .topbar-sync-badge .live-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--sheets-green);
-      animation: pulseDot 2.4s ease infinite;
-    }
+        .input-group label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-    .btn-logout {
-      padding: 6px 14px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
-      background: transparent; color: var(--gray-600); font-family: var(--font-b); font-size: 12px;
-      cursor: pointer; transition: all var(--t);
-    }
-    .btn-logout:hover { border-color: var(--red); color: var(--red); }
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
 
-    .nav-tabs {
-      background: var(--ivory-card); border-bottom: 1px solid var(--gray-200);
-      padding: 0 28px; display: flex; overflow-x: auto;
-    }
-    .nav-tab {
-      padding: 14px 20px; border: none; border-bottom: 2px solid transparent;
-      background: transparent; color: var(--gray-400); font-family: var(--font-b);
-      font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap;
-      transition: color var(--t), border-color var(--t); letter-spacing: .02em;
-    }
-    .nav-tab:hover { color: var(--gray-800); }
-    .nav-tab.active { color: var(--blue-deep); border-bottom-color: var(--blue-deep); }
+        .input-wrapper i {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            width: 18px;
+            height: 18px;
+        }
 
-    .main-content { flex: 1; padding: 28px; max-width: 1200px; margin: 0 auto; width: 100%; }
-    .tab-panel { display: none; animation: fadeUp .3s ease both; }
-    .tab-panel.active { display: block; }
+        .input-group input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            background-color: rgba(15, 20, 29, 0.6);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
 
-    /* ═══════════════════════════════════════════════════════════════
-       SECTION HEADER
-    ═══════════════════════════════════════════════════════════════ */
-    .section-header { margin-bottom: 24px; }
-    .section-header h1 { font-family: var(--font-d); font-size: 32px; font-weight: 300; line-height: 1.2; }
-    .section-header p { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
+        }
 
-    /* ═══════════════════════════════════════════════════════════════
-       GRIDS
-    ═══════════════════════════════════════════════════════════════ */
-    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
-    .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
-    @media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 600px) {
-      .grid-3, .grid-2 { grid-template-columns: 1fr; }
-      .main-content { padding: 16px; }
-      .topbar, .nav-tabs { padding-left: 16px; padding-right: 16px; }
-      .section-header h1 { font-size: 26px; }
-      .add-form { grid-template-columns: 1fr 1fr; }
-    }
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-    /* ═══════════════════════════════════════════════════════════════
-       STAT CARDS
-    ═══════════════════════════════════════════════════════════════ */
-    .stat-card {
-      background: var(--ivory-card); border: 1px solid var(--gray-200);
-      border-radius: var(--radius-md); padding: 20px 22px; box-shadow: var(--shadow-sm);
-      position: relative; overflow: hidden;
-    }
-    .stat-card::after {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      background: var(--blue); opacity: .5;
-    }
-    .stat-card.positive::after { background: var(--green); opacity: 1; }
-    .stat-card.negative::after { background: var(--red); opacity: 1; }
-    .stat-card.neutral::after  { background: var(--yellow); opacity: 1; }
-    .stat-label { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 8px; }
-    .stat-value { font-family: var(--font-d); font-size: 26px; font-weight: 300; letter-spacing: -.01em; }
-    .stat-value.large { font-size: 34px; }
-    .stat-sub { font-size: 12px; color: var(--gray-400); margin-top: 4px; }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        }
 
-    /* ═══════════════════════════════════════════════════════════════
-       YEAR / MONTH SELECTORS
-    ═══════════════════════════════════════════════════════════════ */
-    .year-selector { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-    .year-selector label { font-size: 12px; color: var(--gray-400); letter-spacing: .06em; text-transform: uppercase; }
-    .year-selector select {
-      padding: 7px 12px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
-      background: var(--ivory-card); color: var(--gray-800); font-family: var(--font-b);
-      font-size: 14px; cursor: pointer; outline: none;
-    }
-    .month-selector { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; }
-    .month-btn {
-      padding: 6px 14px; border: 1.5px solid var(--gray-200); border-radius: 99px;
-      background: transparent; color: var(--gray-600); font-family: var(--font-b);
-      font-size: 12px; font-weight: 500; cursor: pointer; transition: all var(--t);
-    }
-    .month-btn:hover { border-color: var(--blue); color: var(--blue-deep); }
-    .month-btn.active { background: var(--blue-deep); border-color: var(--blue-deep); color: #fff; }
+        .error-msg {
+            color: #ff6b6b;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            display: none;
+        }
 
-    /* ═══════════════════════════════════════════════════════════════
-       TRAFFIC LIGHT
-    ═══════════════════════════════════════════════════════════════ */
-    .traffic-light-wrap {
-      display: flex; align-items: center; gap: 14px; padding: 16px 20px;
-      border-radius: var(--radius-md); border: 1px solid var(--gray-200); background: var(--ivory); margin-bottom: 20px;
-    }
-    .tl-icon { font-size: 28px; }
-    .tl-status { font-size: 15px; font-weight: 600; }
-    .tl-desc  { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
-    .traffic-light-wrap.green  { border-color: rgba(107,174,142,.3);  background: var(--green-light); }
-    .traffic-light-wrap.yellow { border-color: rgba(212,168,67,.3);   background: var(--yellow-light); }
-    .traffic-light-wrap.red    { border-color: rgba(192,96,96,.3);    background: var(--red-light); }
-    .tl-pct { margin-left: auto; font-family: var(--font-d); font-size: 28px; font-weight: 300; }
+        /* --- VISTA DE DASHBOARD --- */
+        .dashboard {
+            width: 100%;
+            max-width: 1200px;
+            padding: 2rem;
+            display: none;
+        }
 
-    /* ═══════════════════════════════════════════════════════════════
-       TABLE
-    ═══════════════════════════════════════════════════════════════ */
-    .table-wrap { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--gray-200); }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    thead th {
-      padding: 11px 14px; text-align: left; font-size: 10px; font-weight: 600;
-      letter-spacing: .1em; text-transform: uppercase; color: var(--gray-400);
-      background: var(--ivory); border-bottom: 1px solid var(--gray-200);
-    }
-    tbody td { padding: 11px 14px; border-bottom: 1px solid var(--gray-100); }
-    tbody tr:last-child td { border-bottom: none; }
-    tbody tr:hover { background: var(--ivory); }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
-    .badge-income   { background: var(--green-light); color: #3d7a5c; }
-    .badge-expense  { background: var(--red-light);   color: var(--red); }
-    .badge-invest   { background: var(--blue-muted);  color: var(--blue-deep); }
-    .badge-sheets   { background: var(--sheets-bg);   color: var(--sheets-green); }
-    .amount-income  { color: var(--green); font-weight: 600; }
-    .amount-expense { color: var(--red);   font-weight: 600; }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
 
-    /* ═══════════════════════════════════════════════════════════════
-       ADD TRANSACTION FORM
-    ═══════════════════════════════════════════════════════════════ */
-    .add-form {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(155px,1fr));
-      gap: 12px; align-items: end; padding: 18px;
-      background: var(--ivory); border-radius: var(--radius-md);
-      border: 1px solid var(--gray-200); margin-bottom: 20px;
-    }
-    .add-form .form-group { margin-bottom: 0; }
-    .btn-add {
-      padding: 11px 18px; border: none; border-radius: var(--radius-sm);
-      background: var(--blue-deep); color: #fff; font-family: var(--font-b);
-      font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
-      align-self: end; transition: all var(--t);
-    }
-    .btn-add:hover { background: var(--blue); box-shadow: 0 3px 10px rgba(79,141,180,.3); }
-    .btn-delete {
-      padding: 4px 8px; border: 1px solid var(--gray-200); border-radius: var(--radius-sm);
-      background: transparent; color: var(--gray-400); cursor: pointer; font-size: 12px;
-      transition: all var(--t);
-    }
-    .btn-delete:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-    /* ═══════════════════════════════════════════════════════════════
-       INCOME ROW
-    ═══════════════════════════════════════════════════════════════ */
-    .income-row {
-      display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 18px;
-      background: var(--green-light); border: 1px solid rgba(107,174,142,.25);
-      border-radius: var(--radius-md); margin-bottom: 16px;
-    }
-    .income-row label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #3d7a5c; }
-    .income-row input {
-      padding: 7px 12px; border: 1.5px solid rgba(107,174,142,.4); border-radius: var(--radius-sm);
-      background: #fff; color: var(--gray-800); font-family: var(--font-b); font-size: 14px;
-      width: 160px; outline: none; transition: border-color var(--t);
-    }
-    .income-row input:focus { border-color: var(--green); }
-    .btn-save-income {
-      padding: 8px 16px; border: none; border-radius: var(--radius-sm);
-      background: var(--green); color: #fff; font-family: var(--font-b);
-      font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--t);
-    }
-    .btn-save-income:hover { background: #5a9a7a; }
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    /* ═══════════════════════════════════════════════════════════════
-       FEEDBACK BOX
-    ═══════════════════════════════════════════════════════════════ */
-    .feedback-box {
-      padding: 20px 22px; border-radius: var(--radius-md);
-      border: 1px solid var(--gray-200); border-left: 4px solid var(--blue); background: var(--ivory);
-    }
-    .feedback-box h3 { font-family: var(--font-d); font-size: 16px; font-weight: 400; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-    .feedback-box ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .feedback-box ul li { padding: 8px 12px; background: var(--ivory-card); border-radius: var(--radius-sm); font-size: 13px; color: var(--gray-600); display: flex; gap: 8px; }
-    .feedback-box ul li::before { content: '→'; color: var(--blue-deep); flex-shrink: 0; }
+        .btn-logout:hover {
+            background-color: #ff6b6b;
+            color: #fff;
+        }
 
-    /* ═══════════════════════════════════════════════════════════════
-       GOOGLE SHEETS SYNC PANEL
-    ═══════════════════════════════════════════════════════════════ */
-    .sync-panel {
-      background: var(--ivory-card);
-      border: 1.5px solid #b2dfdb;
-      border-radius: var(--radius-lg);
-      padding: 24px 26px;
-      margin-bottom: 28px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
-    }
-    /* Green accent stripe at top */
-    .sync-panel::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, #34a853, #1a73e8 60%, #34a853);
-      background-size: 200% 100%;
-      animation: gradientShift 4s ease infinite;
-    }
-    @keyframes gradientShift {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
 
-    .sync-panel-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
-    }
-    .sync-panel-brand { display: flex; align-items: center; gap: 10px; }
-    /* Google Sheets logo (SVG inline) */
-    .sheets-logo-wrap {
-      width: 30px; height: 30px; border-radius: 6px; overflow: hidden;
-      background: linear-gradient(135deg, #34a853, #1e8e3e);
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .sheets-logo-wrap svg { width: 18px; height: 18px; }
-    .sync-panel-brand h3 {
-      font-family: var(--font-d); font-size: 19px; font-weight: 400; color: var(--gray-800);
-    }
-    .sync-panel-brand h3 span { font-family: var(--font-b); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--gray-400); display: block; margin-top: -2px; }
-    .sync-last-time { font-size: 11px; color: var(--gray-400); letter-spacing: .04em; }
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
 
-    /* Sub-description */
-    .sync-panel-desc {
-      font-size: 12.5px; color: var(--gray-600); margin-bottom: 16px; line-height: 1.65;
-      padding: 10px 14px; background: var(--ivory); border-radius: var(--radius-sm);
-      border: 1px solid var(--gray-200);
-    }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background-color: var(--gold);
+        }
 
-    /* URL input row */
-    .sync-url-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
-    .sync-url-row input {
-      flex: 1; min-width: 200px; padding: 10px 14px;
-      border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
-      background: var(--ivory); font-family: var(--font-b); font-size: 13px;
-      color: var(--gray-800); outline: none;
-      transition: border-color var(--t), box-shadow var(--t);
-    }
-    .sync-url-row input:focus { border-color: #34a853; box-shadow: 0 0 0 3px rgba(52,168,83,.12); }
-    .sync-url-row input::placeholder { color: var(--gray-400); font-size: 12px; font-style: italic; }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
 
-    /* Sync button */
-    .btn-sync {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 22px; border: none; border-radius: var(--radius-sm);
-      background: linear-gradient(135deg, #1e7e34, #34a853);
-      color: #fff; font-family: var(--font-b); font-size: 13px; font-weight: 600;
-      cursor: pointer; white-space: nowrap;
-      transition: all var(--t);
-      box-shadow: 0 2px 8px rgba(52,168,83,.3);
-    }
-    .btn-sync:hover { background: linear-gradient(135deg, #155c26, #1e7e34); box-shadow: 0 4px 14px rgba(52,168,83,.4); transform: translateY(-1px); }
-    .btn-sync:active { transform: translateY(0); }
-    .btn-sync:disabled { opacity: .65; cursor: not-allowed; transform: none; box-shadow: none; }
+        .card-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
 
-    .btn-sync-clear {
-      padding: 10px 15px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
-      background: transparent; color: var(--gray-400); font-family: var(--font-b); font-size: 12px;
-      cursor: pointer; white-space: nowrap; transition: all var(--t);
-    }
-    .btn-sync-clear:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+        .card-footer {
+            font-size: 0.85rem;
+            color: #51cf66;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
 
-    /* Spinner */
-    .spin {
-      width: 14px; height: 14px; border-radius: 50%;
-      border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
-      animation: spin .65s linear infinite; flex-shrink: 0;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Status bar */
-    .sync-status {
-      display: none; margin-top: 12px; padding: 10px 14px; border-radius: var(--radius-sm);
-      font-size: 12px; font-weight: 500; align-items: center; gap: 8px; line-height: 1.4;
-    }
-    .sync-status.show { display: flex; }
-    .sync-status.loading { background: var(--blue-muted);  color: var(--blue-deep); border: 1px solid rgba(123,175,212,.3); }
-    .sync-status.success { background: var(--sheets-bg);   color: var(--sheets-green); border: 1px solid rgba(52,168,83,.25); }
-    .sync-status.error   { background: var(--red-light);   color: var(--red); border: 1px solid rgba(192,96,96,.2); }
-
-    /* Progress bar */
-    .sync-progress {
-      display: none; height: 3px; border-radius: 99px;
-      background: var(--gray-200); margin-top: 10px; overflow: hidden;
-    }
-    .sync-progress.show { display: block; }
-    .sync-progress-inner {
-      height: 100%; width: 0%;
-      background: linear-gradient(90deg, #34a853, #1a73e8);
-      transition: width .4s ease;
-      border-radius: 99px;
-    }
-
-    /* Collapsible guide */
-    .sync-guide-toggle {
-      display: flex; align-items: center; gap: 6px;
-      background: none; border: none; cursor: pointer;
-      font-family: var(--font-b); font-size: 12px; color: var(--blue-deep);
-      padding: 0; margin-top: 14px; transition: color var(--t);
-    }
-    .sync-guide-toggle:hover { color: var(--blue); }
-    .sync-guide-toggle .arr { transition: transform var(--t); }
-    .sync-guide-toggle.open .arr { transform: rotate(180deg); }
-    .sync-guide { display: none; margin-top: 12px; padding: 16px 18px; background: var(--ivory); border: 1px solid var(--gray-200); border-radius: var(--radius-md); }
-    .sync-guide.show { display: block; }
-    .sync-guide ol { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 7px; }
-    .sync-guide li { font-size: 12px; color: var(--gray-600); line-height: 1.55; }
-    .sync-guide code { background: var(--gray-100); padding: 1px 5px; border-radius: 3px; font-size: 11px; font-family: monospace; color: var(--blue-deep); }
-    .schema-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
-    .schema-block p { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--gray-600); margin-bottom: 6px; }
-    .schema-block .table-wrap { border-radius: var(--radius-sm); }
-    .schema-block thead th { font-size: 9px; padding: 5px 8px; }
-    .schema-block tbody td { font-size: 11px; padding: 5px 8px; color: var(--gray-600); }
-
-    /* ═══════════════════════════════════════════════════════════════
-       TOAST NOTIFICATIONS
-    ═══════════════════════════════════════════════════════════════ */
-    #toast-container {
-      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-      display: flex; flex-direction: column; gap: 10px; pointer-events: none;
-    }
-    .toast {
-      display: flex; align-items: flex-start; gap: 10px;
-      padding: 14px 18px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
-      font-size: 13px; max-width: 360px; pointer-events: all;
-      animation: toastIn .35s cubic-bezier(.34,1.56,.64,1) both;
-    }
-    .toast.toast-success { background: #fff; border: 1px solid rgba(52,168,83,.3);   border-left: 4px solid var(--green); }
-    .toast.toast-error   { background: #fff; border: 1px solid rgba(192,96,96,.3);   border-left: 4px solid var(--red); }
-    .toast.toast-info    { background: #fff; border: 1px solid rgba(123,175,212,.35); border-left: 4px solid var(--blue-deep); }
-    .toast.toast-warn    { background: #fff; border: 1px solid rgba(212,168,67,.3);   border-left: 4px solid var(--yellow); }
-    .toast.removing      { animation: toastOut .25s ease forwards; }
-    .toast-icon  { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-    .toast-body  { flex: 1; }
-    .toast-title { font-weight: 600; color: var(--gray-800); }
-    .toast-msg   { font-size: 12px; color: var(--gray-600); margin-top: 2px; line-height: 1.45; }
-    .toast-close { background: none; border: none; cursor: pointer; color: var(--gray-400); font-size: 16px; line-height: 1; flex-shrink: 0; transition: color var(--t); }
-    .toast-close:hover { color: var(--gray-800); }
-    @keyframes toastIn  { from { opacity: 0; transform: translateY(10px) scale(.95); } to { opacity: 1; transform: none; } }
-    @keyframes toastOut { to   { opacity: 0; transform: translateY(6px) scale(.97); } }
-
-    /* ═══════════════════════════════════════════════════════════════
-       INVESTMENTS
-    ═══════════════════════════════════════════════════════════════ */
-    .roi-positive { color: var(--green); }
-    .roi-negative { color: var(--red); }
-
-    /* ═══════════════════════════════════════════════════════════════
-       ANNUAL DASHBOARD
-    ═══════════════════════════════════════════════════════════════ */
-    .chart-card { background: var(--ivory-card); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow-sm); margin-bottom: 20px; }
-    .chart-card canvas { max-height: 320px; }
-    .card-title { font-family: var(--font-d); font-size: 17px; font-weight: 400; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-    .consulting-box { background: var(--gray-800); color: var(--ivory); border-radius: var(--radius-lg); padding: 32px; margin-top: 24px; }
-    .consulting-box h2 { font-family: var(--font-d); font-size: 26px; font-weight: 300; margin-bottom: 8px; letter-spacing: .02em; }
-    .consulting-box .sub { font-size: 12px; color: var(--gray-400); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 24px; }
-    .consulting-insights { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 14px; }
-    .insight-item { padding: 16px 18px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: var(--radius-md); }
-    .insight-item .insight-label { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--blue-light); margin-bottom: 6px; }
-    .insight-item .insight-val { font-family: var(--font-d); font-size: 20px; font-weight: 300; color: #fff; }
-    .insight-item .insight-desc { font-size: 12px; color: rgba(255,255,255,.5); margin-top: 4px; line-height: 1.5; }
-    .annual-advice { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; }
-    .advice-item { display: flex; gap: 12px; align-items: flex-start; padding: 12px 16px; background: rgba(255,255,255,.05); border-radius: var(--radius-sm); font-size: 13px; color: rgba(255,255,255,.75); line-height: 1.5; border-left: 3px solid var(--blue); }
-
-    /* ═══════════════════════════════════════════════════════════════
-       MISC
-    ═══════════════════════════════════════════════════════════════ */
-    .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-400); }
-    .empty-state .icon { font-size: 36px; margin-bottom: 12px; opacity: .5; }
-    .empty-state p { font-size: 13px; }
-    .mt-16 { margin-top: 16px; }
-    .mt-20 { margin-top: 20px; }
-    .divider { border: none; border-top: 1px solid var(--gray-200); margin: 22px 0; }
-
-    @keyframes fadeUp   { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-    @keyframes pulseDot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .6; transform: scale(.8); } }
-  </style>
+        /* Ocultar elementos */
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     LOGIN SCREEN
-═══════════════════════════════════════════════════════════════ -->
-<div id="login-screen">
-  <div class="login-wrap">
-    <div class="login-brand">
-      <div class="wordmark">Aurelius</div>
-      <div class="sub">Personal Finance · Private</div>
-    </div>
-    <div class="login-card">
-      <h2>Welcome back</h2>
-      <p>Sign in to access your financial dashboard</p>
-      <div class="login-error" id="login-error">Incorrect username or password.</div>
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" id="login-user" autocomplete="username" placeholder="Enter username" />
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="login-pass" autocomplete="current-password" placeholder="Enter password" />
-      </div>
-      <button class="btn-primary" id="login-btn">Sign In</button>
-      <p class="login-hint">Your data is stored locally and never transmitted.</p>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════
-     MAIN APP
-═══════════════════════════════════════════════════════════════ -->
-<div id="app">
-
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <div class="topbar-brand">Aurelius</div>
-    <div class="topbar-right">
-      <div class="topbar-sync-badge" id="topbar-sync-badge">
-        <span class="live-dot"></span>
-        <span>Sheets Linked</span>
-      </div>
-      <span class="topbar-user" id="topbar-user"></span>
-      <button class="btn-logout" id="logout-btn">Sign Out</button>
-    </div>
-  </header>
-
-  <!-- NAV -->
-  <nav class="nav-tabs">
-    <button class="nav-tab active" data-tab="ledger">📒 Monthly Ledger</button>
-    <button class="nav-tab" data-tab="investments">📈 Investments</button>
-    <button class="nav-tab" data-tab="annual">📊 Annual Overview</button>
-  </nav>
-
-  <main class="main-content">
-
-    <!-- ═════════════════ TAB: MONTHLY LEDGER ═════════════════ -->
-    <div class="tab-panel active" id="tab-ledger">
-
-      <div class="section-header">
-        <h1>Monthly Ledger</h1>
-        <p>Track income, expenses and financial health for each month.</p>
-      </div>
-
-      <!-- ── GOOGLE SHEETS SYNC PANEL ── -->
-      <div class="sync-panel" id="sync-panel">
-        <div class="sync-panel-header">
-          <div class="sync-panel-brand">
-            <!-- Google Sheets icon (custom SVG) -->
-            <div class="sheets-logo-wrap">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="3" y="3" width="18" height="18" rx="2" fill="white" fill-opacity=".9"/>
-                <rect x="6" y="8"  width="12" height="1.5" fill="#34a853"/>
-                <rect x="6" y="11" width="12" height="1.5" fill="#34a853"/>
-                <rect x="6" y="14" width="8"  height="1.5" fill="#34a853"/>
-                <rect x="10" y="6" width="1.5" height="12" fill="#34a853" fill-opacity=".3"/>
-              </svg>
+    <!-- MÓDULO DE LOGIN -->
+    <div id="loginView" class="login-container">
+        <i data-lucide="gem" class="logo-icon" style="width: 48px; height: 48px;"></i>
+        <h1>Inversiones de Capital</h1>
+        <p class="subtitle">S.A.S. | Acceso Privado</p>
+        
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="input-group">
+                <label for="username">Usuario</label>
+                <div class="input-wrapper">
+                    <i data-lucide="user"></i>
+                    <input type="text" id="username" required placeholder="Ingrese su usuario">
+                </div>
             </div>
-            <h3>Google Sheets Sync <span>Hybrid Data Input</span></h3>
-          </div>
-          <span class="sync-last-time" id="sync-last-time"></span>
-        </div>
-
-        <div class="sync-panel-desc">
-          Paste your published Google Sheets CSV URL below. Aurelius fetches and merges all transactions and investments automatically — no duplicates, no data loss. Your URL is stored locally only and <strong>never leaves your browser</strong>. Manual entries are preserved.
-        </div>
-
-        <div class="sync-url-row">
-          <input type="url" id="sheets-url-input"
-            placeholder="https://docs.google.com/spreadsheets/d/…/pub?output=csv" />
-          <button class="btn-sync" id="btn-sync-now">
-            <span id="sync-btn-icon">↻</span>
-            <span id="sync-btn-text">Sync Now</span>
-          </button>
-          <button class="btn-sync-clear" id="btn-sync-clear" title="Disconnect Google Sheets">Disconnect</button>
-        </div>
-
-        <div class="sync-status" id="sync-status"></div>
-        <div class="sync-progress" id="sync-progress">
-          <div class="sync-progress-inner" id="sync-progress-inner"></div>
-        </div>
-
-        <!-- Collapsible setup guide -->
-        <button class="sync-guide-toggle" id="sync-guide-toggle">
-          <span>How to publish your Google Sheet as CSV</span>
-          <span class="arr">▾</span>
-        </button>
-        <div class="sync-guide" id="sync-guide">
-          <ol>
-            <li>Open your Google Sheet → <strong>File → Share → Publish to web</strong>.</li>
-            <li>First dropdown: choose the sheet tab to sync (e.g. "Transactions" or "Investments").</li>
-            <li>Second dropdown: select <code>Comma-separated values (.csv)</code>.</li>
-            <li>Click <strong>Publish</strong> and copy the URL — paste it in the field above.</li>
-            <li>Column names are <strong>case-insensitive</strong> and support Spanish/English aliases.</li>
-          </ol>
-          <div class="schema-grid" style="margin-top:14px">
-            <div class="schema-block">
-              <p>Transactions Sheet</p>
-              <div class="table-wrap">
-                <table>
-                  <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amount</th></tr></thead>
-                  <tbody>
-                    <tr><td>2025-01-15</td><td>Salary</td><td>Income</td><td>income</td><td>5000000</td></tr>
-                    <tr><td>2025-01-20</td><td>Rent</td><td>Housing</td><td>expense</td><td>900000</td></tr>
-                  </tbody>
-                </table>
-              </div>
+            
+            <div class="input-group">
+                <label for="password">Contraseña</label>
+                <div class="input-wrapper">
+                    <i data-lucide="lock"></i>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
             </div>
-            <div class="schema-block">
-              <p>Investments Sheet (or use <code>&amp;gid=…</code>)</p>
-              <div class="table-wrap">
-                <table>
-                  <thead><tr><th>Date</th><th>Asset</th><th>Type</th><th>Capital</th><th>CurrentValue</th></tr></thead>
-                  <tbody>
-                    <tr><td>2025-01-10</td><td>S&amp;P 500 ETF</td><td>ETF</td><td>1000000</td><td>1120000</td></tr>
-                  </tbody>
-                </table>
-              </div>
+            
+            <button type="submit" class="btn-login">Iniciar Sesión</button>
+            <p id="errorMsg" class="error-msg">Usuario o contraseña incorrectos.</p>
+        </form>
+    </div>
+
+    <!-- MÓDULO DASHBOARD -->
+    <div id="dashboardView" class="dashboard">
+        <header>
+            <div>
+                <h1 style="font-size: 1.5rem; margin: 0;">Panel Corporativo</h1>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Bienvenido al sistema financiero</p>
             </div>
-          </div>
-        </div>
-      </div>
+            <div class="user-info">
+                <span id="displayUser" style="font-weight: 600; color: var(--gold);"></span>
+                <button class="btn-logout" onclick="handleLogout()">
+                    <i data-lucide="log-out" style="width: 16px; height: 16px;"></i> Salir
+                </button>
+            </div>
+        </header>
 
-      <!-- Year / Month selectors -->
-      <div class="year-selector"><label>Year</label><select id="ledger-year"></select></div>
-      <div class="month-selector" id="month-selector"></div>
+        <main class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <span>Capital Total Privado</span>
+                    <i data-lucide="wallet" style="color: var(--gold)"></i>
+                </div>
+                <div class="card-value">$2,450,000 USD</div>
+                <div class="card-footer"><i data-lucide="trending-up" style="width:16px;"></i> +12.4% este mes</div>
+            </div>
 
-      <!-- Summary stats -->
-      <div class="grid-3 mt-16" id="ledger-stats"></div>
-      <div class="mt-20" id="traffic-light-section"></div>
+            <div class="card">
+                <div class="card-header">
+                    <span>Rendimiento Anual</span>
+                    <i data-lucide="bar-chart-3" style="color: var(--gold)"></i>
+                </div>
+                <div class="card-value">18.6% APY</div>
+                <div class="card-footer"><i data-lucide="shield" style="width:16px;"></i> Portafolio Asegurado</div>
+            </div>
 
-      <!-- Income entry -->
-      <div class="mt-20">
-        <div class="card-title">💰 Monthly Income</div>
-        <div class="income-row">
-          <label>Total Monthly Base Income</label>
-          <input type="number" id="income-input" placeholder="0.00" min="0" step="0.01" />
-          <button class="btn-save-income" id="save-income-btn">Save</button>
-        </div>
-      </div>
-
-      <!-- Add transaction -->
-      <div class="card-title mt-20">➕ Add Transaction</div>
-      <div class="add-form">
-        <div class="form-group"><label>Date</label><input type="date" id="tx-date" /></div>
-        <div class="form-group"><label>Description</label><input type="text" id="tx-desc" placeholder="e.g. Groceries, Bonus…" /></div>
-        <div class="form-group">
-          <label>Category</label>
-          <select id="tx-cat">
-            <option>Income</option><option>Food</option><option>Housing</option>
-            <option>Transport</option><option>Health</option><option>Entertainment</option>
-            <option>Savings</option><option>Other</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Type</label>
-          <select id="tx-type">
-            <option value="income">Income</option>
-            <option value="expense">Expense</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Amount (COP $)</label><input type="number" id="tx-amount" placeholder="0.00" min="0" step="0.01" /></div>
-        <button class="btn-add" id="add-tx-btn">Add Entry</button>
-      </div>
-
-      <div class="card-title">📋 Transactions</div>
-      <div class="table-wrap" id="tx-table-wrap">
-        <div class="empty-state"><div class="icon">📂</div><p>No transactions yet. Add an entry or sync from Google Sheets.</p></div>
-      </div>
-
-      <div class="mt-20" id="feedback-section"></div>
+            <div class="card">
+                <div class="card-header">
+                    <span>Inversiones Activas</span>
+                    <i data-lucide="briefcase" style="color: var(--gold)"></i>
+                </div>
+                <div class="card-value">14 Proyectos</div>
+                <div class="card-footer" style="color: var(--text-muted)">Diversificado en Real Estate & Tech</div>
+            </div>
+        </main>
     </div>
 
-    <!-- ═════════════════ TAB: INVESTMENTS ═════════════════ -->
-    <div class="tab-panel" id="tab-investments">
-      <div class="section-header">
-        <h1>Investment Tracker</h1>
-        <p>Log capital deployed, track current value, and calculate ROI automatically.</p>
-      </div>
-
-      <div class="year-selector"><label>Year</label><select id="inv-year"></select></div>
-      <div class="month-selector" id="inv-month-selector"></div>
-      <div class="grid-3 mt-16" id="inv-stats"></div>
-
-      <div class="card-title mt-20">➕ Add Investment</div>
-      <div class="add-form">
-        <div class="form-group"><label>Date</label><input type="date" id="inv-date" /></div>
-        <div class="form-group"><label>Asset / Name</label><input type="text" id="inv-asset" placeholder="e.g. BTC, ETF…" /></div>
-        <div class="form-group">
-          <label>Type</label>
-          <select id="inv-type-cat">
-            <option>Stocks</option><option>ETF</option><option>Crypto</option>
-            <option>Real Estate</option><option>Bonds</option><option>Business</option><option>Other</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Capital ($)</label><input type="number" id="inv-capital" placeholder="0.00" min="0" step="0.01" /></div>
-        <div class="form-group"><label>Current Value ($)</label><input type="number" id="inv-value" placeholder="0.00" min="0" step="0.01" /></div>
-        <button class="btn-add" id="add-inv-btn">Add</button>
-      </div>
-
-      <div class="card-title">📋 Portfolio</div>
-      <div class="table-wrap" id="inv-table-wrap">
-        <div class="empty-state"><div class="icon">📈</div><p>No investments logged yet.</p></div>
-      </div>
-    </div>
-
-    <!-- ═════════════════ TAB: ANNUAL OVERVIEW ═════════════════ -->
-    <div class="tab-panel" id="tab-annual">
-      <div class="section-header">
-        <h1>Annual Overview</h1>
-        <p>Full-year analytics, interactive charts, and strategic financial consulting.</p>
-      </div>
-      <div class="year-selector"><label>Year</label><select id="annual-year"></select></div>
-      <div class="grid-3" id="annual-stats"></div>
-
-      <div class="chart-card mt-20">
-        <div class="card-title">Income vs. Expenses — Monthly Comparison</div>
-        <canvas id="chart-inc-exp"></canvas>
-      </div>
-      <div class="grid-2 mt-20">
-        <div class="chart-card">
-          <div class="card-title">Net Savings per Month</div>
-          <canvas id="chart-savings"></canvas>
-        </div>
-        <div class="chart-card" id="chart-cat-card">
-          <div class="card-title">Expense Breakdown by Category</div>
-          <canvas id="chart-categories"></canvas>
-        </div>
-      </div>
-      <div class="consulting-box" id="consulting-box"></div>
-    </div>
-
-  </main>
-</div>
-
-<!-- TOAST CONTAINER -->
-<div id="toast-container"></div>
-
-<!-- ═══════════════════════════════════════════════════════════════
-     JAVASCRIPT — COMPLETE MODULAR APPLICATION
-     ─────────────────────────────────────────────────────────────
-     SECURITY NOTE:
-     In production, replace AUTH_CONFIG with window.__AUTH__
-     injected from a gitignored auth.config.js file.
-     See .gitignore and README.md for full setup instructions.
-     NEVER commit real credentials to a public repository.
-═══════════════════════════════════════════════════════════════ -->
-<script>
-"use strict";
-
-/* ─────────────────────────────────────────────────────────────
-   AUTH CONFIG
-   Reads from window.__AUTH__ if present (injected via
-   gitignored auth.config.js) — otherwise uses embedded defaults.
-   To deploy securely:
-     1. Create auth.config.js (excluded by .gitignore):
-        window.__AUTH__ = { username:"you", password:"secret" };
-     2. Add <script src="auth.config.js"></script> before this block.
-───────────────────────────────────────────────────────────── */
-const AUTH_CONFIG = (typeof window.__AUTH__ !== "undefined")
-  ? window.__AUTH__
-  : { username: "michellpf", password: "3360076" };
-
-/* ─────────────────────────────────────────────────────────────
-   CONSTANTS
-───────────────────────────────────────────────────────────── */
-const MONTHS       = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const MONTHS_FULL  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const LS_DATA      = "aurelius_data_v2";
-const LS_SHEETS_URL  = "aurelius_sheets_url";
-const LS_SHEETS_TIME = "aurelius_sheets_last_sync";
-const LS_SESSION     = "aurelius_session";
-
-/* ─────────────────────────────────────────────────────────────
-   UTILITIES
-───────────────────────────────────────────────────────────── */
-const fmt = n => new Intl.NumberFormat("es-CO", {
-  style:"currency", currency:"COP", minimumFractionDigits:0, maximumFractionDigits:0
-}).format(parseFloat(n) || 0);
-
-const uid     = () => Math.random().toString(36).slice(2, 10);
-const todayStr = () => new Date().toISOString().slice(0, 10);
-
-/**
- * Normalize assorted date formats to YYYY-MM-DD.
- * Handles ISO, DD/MM/YYYY, MM/DD/YYYY, D/M/YY, and native Date parse.
- * Returns null if the date cannot be resolved.
- */
-function normalizeDate(raw) {
-  if (!raw) return null;
-  const s = raw.toString().trim().replace(/\s+/g," ");
-
-  // Already ISO
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-
-  // Numeric separators: DD/MM/YYYY · MM/DD/YYYY · YYYY/MM/DD
-  const parts = s.split(/[\/\-\.]/);
-  if (parts.length === 3) {
-    let [a, b, c] = parts;
-    // Year is the 4-digit (or 2-digit) component
-    if (a.length === 4) {
-      // YYYY-MM-DD already handled; YYYY/MM/DD
-      return `${a}-${b.padStart(2,"0")}-${c.padStart(2,"0")}`;
-    }
-    if (c.length === 4) {
-      // Ambiguous: if a > 12 it must be the day (DD/MM/YYYY)
-      const day = parseInt(a, 10), mon = parseInt(b, 10);
-      if (day > 12) return `${c}-${b.padStart(2,"0")}-${a.padStart(2,"0")}`;
-      // Otherwise assume DD/MM/YYYY (Colombian convention)
-      return `${c}-${b.padStart(2,"0")}-${a.padStart(2,"0")}`;
-    }
-    // 2-digit year
-    if (c.length === 2) {
-      const yr = parseInt(c,10) < 50 ? "20"+c : "19"+c;
-      return `${yr}-${b.padStart(2,"0")}-${a.padStart(2,"0")}`;
-    }
-  }
-
-  // Fallback: native parse
-  const d = new Date(s);
-  if (!isNaN(d)) return d.toISOString().slice(0,10);
-  return null;
-}
-
-/* ─────────────────────────────────────────────────────────────
-   DATA LAYER — localStorage
-   Drop-in replaceable with Firebase / Supabase.
-   Just swap the four methods: getLedger / saveLedger /
-   getInvestments / saveInvestments.
-───────────────────────────────────────────────────────────── */
-const DB = {
-  _load() {
-    try { return JSON.parse(localStorage.getItem(LS_DATA)) || { ledger:{}, investments:{} }; }
-    catch { return { ledger:{}, investments:{} }; }
-  },
-  _save(d) { localStorage.setItem(LS_DATA, JSON.stringify(d)); },
-
-  getLedger(y, m) {
-    const d = this._load(), k = `${y}-${m}`;
-    if (!d.ledger[k]) d.ledger[k] = { income:0, transactions:[] };
-    return d.ledger[k];
-  },
-  saveLedger(y, m, data) {
-    const d = this._load();
-    d.ledger[`${y}-${m}`] = data;
-    this._save(d);
-  },
-  getInvestments(y, m) {
-    const d = this._load(), k = `${y}-${m}`;
-    if (!d.investments[k]) d.investments[k] = [];
-    return d.investments[k];
-  },
-  saveInvestments(y, m, data) {
-    const d = this._load();
-    d.investments[`${y}-${m}`] = data;
-    this._save(d);
-  },
-  getYearLedger(y) {
-    const d = this._load();
-    return MONTHS.map((_, i) => d.ledger[`${y}-${i}`] || { income:0, transactions:[] });
-  },
-  getYearInvestments(y) {
-    const d = this._load();
-    return MONTHS.map((_, i) => d.investments[`${y}-${i}`] || []);
-  }
-};
-
-/* ─────────────────────────────────────────────────────────────
-   SESSION (tab-scoped, cleared on close)
-───────────────────────────────────────────────────────────── */
-const Session = {
-  loggedIn: false, username: null,
-  login(u)  { this.loggedIn = true;  this.username = u; },
-  logout()  { this.loggedIn = false; this.username = null; }
-};
-
-/* ─────────────────────────────────────────────────────────────
-   APP STATE
-───────────────────────────────────────────────────────────── */
-let currentYear  = new Date().getFullYear();
-let currentMonth = new Date().getMonth();
-let invYear  = currentYear;
-let invMonth = currentMonth;
-let annualYear = currentYear;
-let chartIncExp = null, chartSavings = null, chartCats = null;
-
-/* ═══════════════════════════════════════════════════════════════
-   TOAST NOTIFICATION SYSTEM
-═══════════════════════════════════════════════════════════════ */
-function showToast(type, title, msg, duration = 5500) {
-  const icons = { success:"✅", error:"⛔", info:"ℹ️", warn:"⚠️" };
-  const el = document.createElement("div");
-  el.className = `toast toast-${type}`;
-  el.innerHTML = `
-    <span class="toast-icon">${icons[type] || "💬"}</span>
-    <div class="toast-body">
-      <div class="toast-title">${title}</div>
-      ${msg ? `<div class="toast-msg">${msg}</div>` : ""}
-    </div>
-    <button class="toast-close" onclick="dismissToast(this.parentElement)">×</button>`;
-  document.getElementById("toast-container").appendChild(el);
-  if (duration > 0) setTimeout(() => dismissToast(el), duration);
-}
-function dismissToast(el) {
-  if (!el || !el.parentElement) return;
-  el.classList.add("removing");
-  setTimeout(() => el.remove(), 280);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ██████  CSV PARSER MODULE  ██████
-   Handles quoted fields, embedded commas, CRLF/LF line endings.
-═══════════════════════════════════════════════════════════════ */
-
-/**
- * parseCSV(text) → Array<Array<string>>
- * Full RFC-4180 compliant parser.
- */
-function parseCSV(text) {
-  const rows = [];
-  let row = [], field = "", inQ = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i], nx = text[i + 1];
-    if (inQ) {
-      if (ch === '"' && nx === '"') { field += '"'; i++; }
-      else if (ch === '"') { inQ = false; }
-      else { field += ch; }
-    } else {
-      if (ch === '"') { inQ = true; }
-      else if (ch === ',') { row.push(field.trim()); field = ""; }
-      else if (ch === '\n' || (ch === '\r' && nx === '\n')) {
-        if (ch === '\r') i++;
-        row.push(field.trim()); field = "";
-        if (row.some(c => c !== "")) rows.push(row);
-        row = [];
-      } else { field += ch; }
-    }
-  }
-  if (field.trim() || row.length) { row.push(field.trim()); if (row.some(c => c)) rows.push(row); }
-  return rows;
-}
-
-/**
- * detectSheetType(headers) → 'transactions' | 'investments' | 'unknown'
- * Heuristic: if "capital" or "asset" keywords appear → investments.
- * Otherwise → transactions.
- */
-function detectSheetType(headers) {
-  const h = headers.map(s => s.toLowerCase().trim());
-  const isInv = h.some(x =>
-    x.includes("capital") || x.includes("asset") || x.includes("activo") ||
-    x.includes("invested") || x.includes("inversion") || x.includes("instrument") ||
-    x.includes("currentvalue") || x.includes("current value") || x.includes("valor actual")
-  );
-  return isInv ? "investments" : "transactions";
-}
-
-/**
- * buildColMap(headers) → object mapping lowercase header → column index.
- */
-function buildColMap(headers) {
-  const map = {};
-  headers.forEach((h, i) => { map[h.toLowerCase().trim()] = i; });
-  return map;
-}
-
-/**
- * colVal(row, colMap, ...aliases) → string | ""
- * Tries each alias and returns the first non-empty value found.
- */
-function colVal(row, colMap, ...aliases) {
-  for (const a of aliases) {
-    const idx = colMap[a.toLowerCase()];
-    if (idx !== undefined && row[idx] !== undefined && row[idx].trim() !== "")
-      return row[idx].trim();
-  }
-  return "";
-}
-
-/**
- * parseTransactionRows(rows, colMap) → Array<TransactionObject>
- * Maps CSV data rows to canonical transaction objects.
- * Supports English and Spanish column aliases.
- */
-function parseTransactionRows(rows, colMap) {
-  const results = [];
-  for (const row of rows) {
-    if (row.every(c => !c)) continue;
-
-    const dateRaw = colVal(row, colMap, "date","fecha","day","dia","f","date_col");
-    const date    = normalizeDate(dateRaw);
-    if (!date) continue;                                   // skip rows with unparseable dates
-
-    const desc   = colVal(row, colMap,
-      "description","descripcion","desc","concept","concepto",
-      "detail","detalle","name","nombre","memo","referencia"
-    ) || "Imported Entry";
-
-    const cat    = colVal(row, colMap,
-      "category","categoria","cat","subcategory","tipo2","group","grupo"
-    ) || "Other";
-
-    const typeRaw = colVal(row, colMap,
-      "type","tipo","kind","flujo","flow"
-    ) || "expense";
-    const typeLC  = typeRaw.toLowerCase();
-    const type    = (typeLC.includes("income") || typeLC.includes("ingreso") ||
-                     typeLC.includes("entrada") || typeLC.includes("inflow"))
-                    ? "income" : "expense";
-
-    const amtRaw = colVal(row, colMap,
-      "amount","monto","valor","value","importe","suma","total","cant"
-    );
-    // Strip currency symbols, spaces, dots used as thousands separators
-    const amount  = parseFloat(amtRaw.replace(/[^0-9.,-]/g,"").replace(/,(\d{2})$/,".$1").replace(/,/g,""));
-    if (isNaN(amount) || amount <= 0) continue;
-
-    results.push({ date, desc, cat, type, amount });
-  }
-  return results;
-}
-
-/**
- * parseInvestmentRows(rows, colMap) → Array<InvestmentObject>
- * Maps CSV data rows to canonical investment objects with ROI pre-calculated.
- */
-function parseInvestmentRows(rows, colMap) {
-  const results = [];
-  for (const row of rows) {
-    if (row.every(c => !c)) continue;
-
-    const dateRaw = colVal(row, colMap, "date","fecha","dia");
-    const date    = normalizeDate(dateRaw);
-    if (!date) continue;
-
-    const asset  = colVal(row, colMap,
-      "asset","activo","instrument","name","nombre","investment","inversion","ticker","fondo"
-    ) || "Unknown Asset";
-
-    const type   = colVal(row, colMap,
-      "type","tipo","category","categoria","clase"
-    ) || "Other";
-
-    const capRaw = colVal(row, colMap,
-      "capital","invested","invertido","cost","costo","inversion","valor_inicial","initial"
-    );
-    const valRaw = colVal(row, colMap,
-      "currentvalue","current value","valor actual","value","valor","market value","precio_actual","current"
-    );
-
-    const capital       = parseFloat(capRaw.replace(/[^0-9.,-]/g,""));
-    const currentValue  = parseFloat(valRaw.replace(/[^0-9.,-]/g,"")) || capital;
-    if (isNaN(capital) || capital <= 0) continue;
-
-    const netProfit = currentValue - capital;
-    const roi       = (netProfit / capital) * 100;
-    results.push({ date, asset, type, capital, currentValue, netProfit, roi });
-  }
-  return results;
-}
-
-/* ─────────────────────────────────────────────────────────────
-   MERGE FUNCTIONS — Deduplication layer
-   Uses composite fingerprint key to prevent double-import.
-───────────────────────────────────────────────────────────── */
-function mergeTransactions(year, month, newTxs) {
-  const ledger      = DB.getLedger(year, month);
-  const fingerprints = new Set(
-    ledger.transactions.map(t => `${t.date}|${t.desc.toLowerCase().trim()}|${t.amount}`)
-  );
-  let added = 0, skipped = 0;
-  for (const tx of newTxs) {
-    const fp = `${tx.date}|${tx.desc.toLowerCase().trim()}|${tx.amount}`;
-    if (fingerprints.has(fp)) { skipped++; continue; }
-    ledger.transactions.push({ id: uid(), source: "sheets", ...tx });
-    fingerprints.add(fp);
-    added++;
-  }
-  ledger.transactions.sort((a, b) => a.date.localeCompare(b.date));
-  DB.saveLedger(year, month, ledger);
-  return { added, skipped };
-}
-
-function mergeInvestments(year, month, newInvs) {
-  const existing   = DB.getInvestments(year, month);
-  const fingerprints = new Set(
-    existing.map(i => `${i.date}|${i.asset.toLowerCase().trim()}|${i.capital}`)
-  );
-  let added = 0, skipped = 0;
-  for (const inv of newInvs) {
-    const fp = `${inv.date}|${inv.asset.toLowerCase().trim()}|${inv.capital}`;
-    if (fingerprints.has(fp)) { skipped++; continue; }
-    existing.push({ id: uid(), source: "sheets", ...inv });
-    fingerprints.add(fp);
-    added++;
-  }
-  DB.saveInvestments(year, month, existing);
-  return { added, skipped };
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ██████  GOOGLE SHEETS SYNC MODULE  ██████
-═══════════════════════════════════════════════════════════════ */
-
-/** Update progress bar (0–100) */
-function setSyncProgress(pct) {
-  const bar = document.getElementById("sync-progress");
-  const inner = document.getElementById("sync-progress-inner");
-  if (pct === null) {
-    bar.classList.remove("show");
-    inner.style.width = "0%";
-  } else {
-    bar.classList.add("show");
-    inner.style.width = `${pct}%`;
-  }
-}
-
-/** Control the Sync Now button and inline status bar */
-function setSyncUI(state, message = "") {
-  const btn    = document.getElementById("btn-sync-now");
-  const iconEl = document.getElementById("sync-btn-icon");
-  const txtEl  = document.getElementById("sync-btn-text");
-  const statusEl = document.getElementById("sync-status");
-
-  switch (state) {
-    case "loading":
-      btn.disabled = true;
-      iconEl.className = "spin"; iconEl.textContent = "";
-      txtEl.textContent = "Syncing…";
-      statusEl.className = "sync-status show loading";
-      statusEl.innerHTML = `<span>⬤</span> ${message || "Connecting to Google Sheets…"}`;
-      setSyncProgress(15);
-      break;
-
-    case "fetched":
-      statusEl.innerHTML = `<span>⬤</span> ${message || "Parsing data…"}`;
-      setSyncProgress(55);
-      break;
-
-    case "success":
-      btn.disabled = false;
-      iconEl.className = ""; iconEl.textContent = "✓";
-      txtEl.textContent = "Sync Now";
-      statusEl.className = "sync-status show success";
-      statusEl.innerHTML = `<span>✅</span> ${message}`;
-      setSyncProgress(100);
-      setTimeout(() => { statusEl.className = "sync-status"; setSyncProgress(null); }, 8000);
-      break;
-
-    case "error":
-      btn.disabled = false;
-      iconEl.className = ""; iconEl.textContent = "↻";
-      txtEl.textContent = "Sync Now";
-      statusEl.className = "sync-status show error";
-      statusEl.innerHTML = `<span>⚠️</span> ${message}`;
-      setSyncProgress(null);
-      break;
-
-    default: // idle
-      btn.disabled = false;
-      iconEl.className = ""; iconEl.textContent = "↻";
-      txtEl.textContent = "Sync Now";
-      statusEl.className = "sync-status";
-      setSyncProgress(null);
-  }
-}
-
-/** Refresh the "Sheets Linked" badge and last-sync timestamp in topbar */
-function updateSyncBadge() {
-  const url    = localStorage.getItem(LS_SHEETS_URL);
-  const badge  = document.getElementById("topbar-sync-badge");
-  const timeEl = document.getElementById("sync-last-time");
-
-  badge.classList.toggle("visible", !!url);
-
-  const ts = localStorage.getItem(LS_SHEETS_TIME);
-  if (ts) {
-    const d = new Date(ts);
-    timeEl.textContent = `Last synced: ${d.toLocaleDateString("es-CO")} ${d.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"})}`;
-  } else {
-    timeEl.textContent = url ? "Never synced" : "";
-  }
-}
-
-/**
- * syncWithGoogleSheets(url)
- * ──────────────────────────
- * The main async sync pipeline:
- *  1. Validate URL
- *  2. Fetch via CORS proxy (allorigins.win — free, open-source, no retention)
- *  3. Parse CSV with RFC-4180 parser
- *  4. Auto-detect sheet type (transactions vs investments)
- *  5. Group entries by year-month
- *  6. Merge into localStorage (deduplication via fingerprint)
- *  7. Re-render ALL affected views instantly
- *
- * Production note: Replace the allorigins proxy with a server-side
- * Cloud Function / Edge Function to keep the URL completely private.
- */
-async function syncWithGoogleSheets(url) {
-  // ── 1. Validate ────────────────────────────────────────────
-  if (!url || !url.startsWith("http")) {
-    setSyncUI("error", "Please paste a valid Google Sheets CSV URL (must start with https://).");
-    return;
-  }
-  if (!url.includes("google.com") && !url.includes("docs.google")) {
-    setSyncUI("error", "URL does not appear to be a Google Sheets link. Please verify.");
-    return;
-  }
-
-  setSyncUI("loading", "Connecting to Google Sheets…");
-
-  // ── 2. Fetch ────────────────────────────────────────────────
-  let csvText;
-  try {
-    // Two proxy attempts in case the first is rate-limited.
-    const proxyUrls = [
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-      `https://corsproxy.io/?${encodeURIComponent(url)}`
-    ];
-
-    let response, lastErr;
-    for (const proxyUrl of proxyUrls) {
-      try {
-        response = await fetch(proxyUrl, { cache: "no-cache" });
-        if (response.ok) break;
-      } catch (e) { lastErr = e; }
-    }
-
-    if (!response || !response.ok) {
-      throw lastErr || new Error(`HTTP ${response?.status}`);
-    }
-
-    csvText = await response.text();
-    setSyncUI("fetched", "Parsing imported data…");
-  } catch (err) {
-    const msg = "Failed to sync. Please verify your Google Sheets publishing settings and ensure the URL ends with <code>?output=csv</code>.";
-    setSyncUI("error", msg);
-    showToast("error", "Sync Failed", "Could not reach Google Sheets. Check the URL and publishing settings.", 8000);
-    console.error("[Aurelius Sync] Fetch error:", err);
-    return;
-  }
-
-  // ── 3. Validate CSV content ──────────────────────────────────
-  const trimmed = csvText.trimStart();
-  if (trimmed.startsWith("<!") || trimmed.startsWith("<html")) {
-    const msg = "Received an HTML page instead of CSV data. Make sure the sheet is published with <code>output=csv</code> and is publicly accessible.";
-    setSyncUI("error", msg);
-    showToast("error", "Sync Failed", "Received HTML instead of CSV — check publishing settings.", 8000);
-    return;
-  }
-  if (trimmed.length < 10) {
-    setSyncUI("error", "The response is empty. The sheet may not be published publicly.");
-    showToast("error", "Empty Sheet", "No data received from Google Sheets.", 6000);
-    return;
-  }
-
-  // ── 4. Parse CSV ─────────────────────────────────────────────
-  const rows = parseCSV(csvText);
-  if (rows.length < 2) {
-    setSyncUI("error", "The sheet appears to have no data rows (minimum 1 header + 1 data row required).");
-    showToast("warn", "No Data", "The sheet has no data rows to import.", 6000);
-    return;
-  }
-
-  const headers    = rows[0];
-  const dataRows   = rows.slice(1);
-  const sheetType  = detectSheetType(headers);
-  const colMap     = buildColMap(headers);
-
-  let totalAdded = 0, totalSkipped = 0;
-  const yearsAffected = new Set();
-
-  // ── 5 & 6. Group by month and merge ─────────────────────────
-  if (sheetType === "investments") {
-    const parsed = parseInvestmentRows(dataRows, colMap);
-    if (!parsed.length) {
-      setSyncUI("error", "No valid investment rows found. Check that the Capital column has positive numbers.");
-      showToast("warn", "Nothing Imported", "No parseable investment rows in the sheet.", 6000);
-      return;
-    }
-    // Group by year-month
-    const byMonth = {};
-    parsed.forEach(inv => {
-      const d = new Date(inv.date + "T12:00:00");
-      const k = `${d.getFullYear()}-${d.getMonth()}`;
-      (byMonth[k] = byMonth[k] || []).push(inv);
-      yearsAffected.add(d.getFullYear());
-    });
-    for (const [k, invs] of Object.entries(byMonth)) {
-      const [y, m] = k.split("-").map(Number);
-      const { added, skipped } = mergeInvestments(y, m, invs);
-      totalAdded += added; totalSkipped += skipped;
-    }
-  } else {
-    // Transactions (default)
-    const parsed = parseTransactionRows(dataRows, colMap);
-    if (!parsed.length) {
-      setSyncUI("error", "No valid transaction rows found. Check column names and date formats.");
-      showToast("warn", "Nothing Imported", "No parseable transaction rows in the sheet.", 6000);
-      return;
-    }
-    // Check for a base monthly income row (special marker)
-    for (const tx of parsed) {
-      if (tx.type === "income" && (
-        tx.cat.toLowerCase().includes("base") ||
-        tx.desc.toLowerCase().includes("base income") ||
-        tx.desc.toLowerCase().includes("monthly income") ||
-        tx.desc.toLowerCase().includes("ingreso base")
-      )) {
-        const d   = new Date(tx.date + "T12:00:00");
-        const y   = d.getFullYear(), m = d.getMonth();
-        const led = DB.getLedger(y, m);
-        if (!led.income) {              // only set if not already populated manually
-          led.income = tx.amount;
-          DB.saveLedger(y, m, led);
-          yearsAffected.add(y);
+    <script>
+        // Inicializar Iconos Lucide
+        lucide.createIcons();
+
+        // Configuración de Seguridad
+        const AUTH_USER = "michellpf";
+        const AUTH_PASS = "3360076";
+        const LS_SESSION = "app_user_logged"; // Nombre clave en almacenamiento
+
+        // Vista de Elementos del DOM
+        const loginView = document.getElementById('loginView');
+        const dashboardView = document.getElementById('dashboardView');
+        const errorMsg = document.getElementById('errorMsg');
+        const displayUser = document.getElementById('displayUser');
+
+        // Control de Sesión - COMPROBACIÓN INICIAL (CORREGIDO CON LOCALSTORAGE)
+        function initAuth() {
+            const saved = localStorage.getItem(LS_SESSION);[cite: 5]
+            if (saved === AUTH_USER) {
+                showDashboard(saved);
+            } else {
+                showLogin();
+            }
         }
-      }
-    }
-    // Group and merge
-    const byMonth = {};
-    parsed.forEach(tx => {
-      const d = new Date(tx.date + "T12:00:00");
-      const k = `${d.getFullYear()}-${d.getMonth()}`;
-      (byMonth[k] = byMonth[k] || []).push(tx);
-      yearsAffected.add(d.getFullYear());
-    });
-    for (const [k, txs] of Object.entries(byMonth)) {
-      const [y, m] = k.split("-").map(Number);
-      const { added, skipped } = mergeTransactions(y, m, txs);
-      totalAdded += added; totalSkipped += skipped;
-    }
-  }
 
-  // ── 7. Persist sync timestamp & refresh ALL views ────────────
-  localStorage.setItem(LS_SHEETS_TIME, new Date().toISOString());
-  updateSyncBadge();
-
-  // Re-render current ledger view
-  renderLedger();
-  // Re-render investments view
-  renderInvestments();
-  // If annual tab is active, refresh it; otherwise it refreshes on next activation
-  if (document.getElementById("tab-annual").classList.contains("active")) {
-    renderAnnual();
-  }
-
-  // ── 8. Success feedback ──────────────────────────────────────
-  const entityName = sheetType === "investments" ? "investment" : "transaction";
-  const summary    = `${totalAdded} new ${entityName}${totalAdded !== 1 ? "s" : ""} imported` +
-                     (totalSkipped > 0 ? ` · ${totalSkipped} duplicate${totalSkipped !== 1 ? "s" : ""} skipped` : "") +
-                     ` across ${yearsAffected.size} year${yearsAffected.size !== 1 ? "s" : ""}.`;
-
-  setSyncUI("success", summary);
-  showToast("success", "Sync Complete ✓", summary, 7000);
-}
-
-/** initSyncPanel — wire up sync UI, load persisted URL, auto-sync on login */
-function initSyncPanel() {
-  const urlInput    = document.getElementById("sheets-url-input");
-  const btnSync     = document.getElementById("btn-sync-now");
-  const btnClear    = document.getElementById("btn-sync-clear");
-  const guideTrigger = document.getElementById("sync-guide-toggle");
-  const guideBox    = document.getElementById("sync-guide");
-
-  // Restore saved URL
-  const savedUrl = localStorage.getItem(LS_SHEETS_URL);
-  if (savedUrl) urlInput.value = savedUrl;
-  updateSyncBadge();
-
-  // Sync Now
-  btnSync.addEventListener("click", () => {
-    const url = urlInput.value.trim();
-    if (!url) {
-      setSyncUI("error", "Please paste your Google Sheets CSV URL first.");
-      return;
-    }
-    localStorage.setItem(LS_SHEETS_URL, url);
-    updateSyncBadge();
-    syncWithGoogleSheets(url);
-  });
-
-  // Enter key shortcut
-  urlInput.addEventListener("keydown", e => { if (e.key === "Enter") btnSync.click(); });
-
-  // Disconnect / clear
-  btnClear.addEventListener("click", () => {
-    if (!confirm("Disconnect Google Sheets? This only removes the saved URL — your imported data is kept.")) return;
-    urlInput.value = "";
-    localStorage.removeItem(LS_SHEETS_URL);
-    localStorage.removeItem(LS_SHEETS_TIME);
-    setSyncUI("idle");
-    updateSyncBadge();
-    showToast("info", "Disconnected", "Google Sheets URL removed. Your data is preserved.");
-  });
-
-  // Collapsible guide
-  guideTrigger.addEventListener("click", () => {
-    const open = guideBox.classList.toggle("show");
-    guideTrigger.classList.toggle("open", open);
-  });
-
-  // ── AUTO-SYNC on login if URL is already saved ────────────────
-  // Small delay so the DOM renders first before the fetch kicks off.
-  if (savedUrl) {
-    setTimeout(() => syncWithGoogleSheets(savedUrl), 900);
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   AUTH MODULE
-═══════════════════════════════════════════════════════════════ */
-function initAuth() {
-  document.getElementById("login-btn").addEventListener("click", handleLogin);
-  document.getElementById("login-pass").addEventListener("keydown", e => {
-    if (e.key === "Enter") handleLogin();
-  });
-  document.getElementById("logout-btn").addEventListener("click", handleLogout);
-
-  // Restore session (tab-scoped)
-  const saved = sessionStorage.getItem(LS_SESSION);
-  if (saved) { Session.login(saved); showApp(); }
-}
-
-function handleLogin() {
-  const u   = document.getElementById("login-user").value.trim();
-  const p   = document.getElementById("login-pass").value;
-  const err = document.getElementById("login-error");
-
-  if (u === AUTH_CONFIG.username && p === AUTH_CONFIG.password) {
-    err.classList.remove("show");
-    Session.login(u);
-    sessionStorage.setItem(LS_SESSION, u);
-    showApp();
-  } else {
-    err.classList.add("show");
-    document.getElementById("login-pass").value = "";
-    document.getElementById("login-pass").focus();
-  }
-}
-
-function handleLogout() {
-  Session.logout();
-  sessionStorage.removeItem(LS_SESSION);
-  document.getElementById("login-screen").classList.remove("hidden");
-  document.getElementById("app").classList.remove("active");
-  document.getElementById("login-user").value = "";
-  document.getElementById("login-pass").value = "";
-}
-
-function showApp() {
-  document.getElementById("login-screen").classList.add("hidden");
-  document.getElementById("app").classList.add("active");
-  document.getElementById("topbar-user").textContent = Session.username;
-  initApp();
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   NAVIGATION MODULE
-═══════════════════════════════════════════════════════════════ */
-function initNav() {
-  document.querySelectorAll(".nav-tab").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".nav-tab").forEach(b => b.classList.remove("active"));
-      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-      btn.classList.add("active");
-      document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
-      if (btn.dataset.tab === "annual") renderAnnual();
-    });
-  });
-}
-
-/* ─────────────────────────────────────────────────────────────
-   SHARED HELPERS — Year / Month selectors
-───────────────────────────────────────────────────────────── */
-function buildYearSelect(id, year, onChange) {
-  const sel = document.getElementById(id);
-  sel.innerHTML = "";
-  const end = new Date().getFullYear() + 2;
-  for (let y = end; y >= 2020; y--) {
-    const o = document.createElement("option");
-    o.value = y; o.textContent = y;
-    if (y === year) o.selected = true;
-    sel.appendChild(o);
-  }
-  sel.addEventListener("change", () => onChange(parseInt(sel.value)));
-}
-
-function buildMonthSelector(containerId, active, onClick) {
-  const c = document.getElementById(containerId);
-  c.innerHTML = "";
-  MONTHS.forEach((m, i) => {
-    const btn = document.createElement("button");
-    btn.className = "month-btn" + (i === active ? " active" : "");
-    btn.textContent = m;
-    btn.addEventListener("click", () => {
-      c.querySelectorAll(".month-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      onClick(i);
-    });
-    c.appendChild(btn);
-  });
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   MODULE 1 — MONTHLY LEDGER
-═══════════════════════════════════════════════════════════════ */
-function initLedger() {
-  buildYearSelect("ledger-year", currentYear, y => { currentYear = y; renderLedger(); });
-  buildMonthSelector("month-selector", currentMonth, m => { currentMonth = m; renderLedger(); });
-  document.getElementById("tx-date").value = todayStr();
-  document.getElementById("save-income-btn").addEventListener("click", saveIncome);
-  document.getElementById("add-tx-btn").addEventListener("click", addTransaction);
-  renderLedger();
-}
-
-function renderLedger() {
-  const data = DB.getLedger(currentYear, currentMonth);
-  renderLedgerStats(data);
-  renderTrafficLight(data);
-  document.getElementById("income-input").value = data.income || "";
-  renderTransactionTable(data);
-  renderFeedback(data);
-}
-
-function saveIncome() {
-  const val  = parseFloat(document.getElementById("income-input").value) || 0;
-  const data = DB.getLedger(currentYear, currentMonth);
-  data.income = val;
-  DB.saveLedger(currentYear, currentMonth, data);
-  renderLedger();
-}
-
-function addTransaction() {
-  const date   = document.getElementById("tx-date").value;
-  const desc   = document.getElementById("tx-desc").value.trim();
-  const cat    = document.getElementById("tx-cat").value;
-  const type   = document.getElementById("tx-type").value;
-  const amount = parseFloat(document.getElementById("tx-amount").value);
-
-  if (!date || !desc || isNaN(amount) || amount <= 0) {
-    showToast("warn", "Incomplete Entry", "Please fill in all fields with valid values.");
-    return;
-  }
-
-  const data = DB.getLedger(currentYear, currentMonth);
-  data.transactions.push({ id: uid(), date, desc, cat, type, amount, source: "manual" });
-  data.transactions.sort((a, b) => a.date.localeCompare(b.date));
-  DB.saveLedger(currentYear, currentMonth, data);
-
-  document.getElementById("tx-desc").value   = "";
-  document.getElementById("tx-amount").value = "";
-  renderLedger();
-}
-
-function deleteTransaction(id) {
-  const data = DB.getLedger(currentYear, currentMonth);
-  data.transactions = data.transactions.filter(t => t.id !== id);
-  DB.saveLedger(currentYear, currentMonth, data);
-  renderLedger();
-}
-
-function calcTotals(data) {
-  const totalIncome   = (data.income || 0) +
-    data.transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const totalExpenses = data.transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-  const netBalance    = totalIncome - totalExpenses;
-  const expenseRatio  = totalIncome > 0 ? (totalExpenses / totalIncome) * 100 : 0;
-  const savingsRate   = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
-  return { totalIncome, totalExpenses, netBalance, expenseRatio, savingsRate };
-}
-
-function renderLedgerStats(data) {
-  const { totalIncome, totalExpenses, netBalance } = calcTotals(data);
-  const cls = netBalance >= 0 ? "positive" : "negative";
-  const synced = data.transactions.filter(t => t.source === "sheets").length;
-  document.getElementById("ledger-stats").innerHTML = `
-    <div class="stat-card positive">
-      <div class="stat-label">Total Income</div>
-      <div class="stat-value large">${fmt(totalIncome)}</div>
-      <div class="stat-sub">${MONTHS_FULL[currentMonth]} ${currentYear}</div>
-    </div>
-    <div class="stat-card negative">
-      <div class="stat-label">Total Expenses</div>
-      <div class="stat-value large">${fmt(totalExpenses)}</div>
-      <div class="stat-sub">${data.transactions.filter(t=>t.type==="expense").length} entries${synced ? ` · ${synced} from Sheets` : ""}</div>
-    </div>
-    <div class="stat-card ${cls}">
-      <div class="stat-label">Net Balance</div>
-      <div class="stat-value large" style="color:${netBalance>=0?"var(--green)":"var(--red)"}">${fmt(netBalance)}</div>
-      <div class="stat-sub">${netBalance >= 0 ? "Surplus" : "Deficit"} this month</div>
-    </div>`;
-}
-
-function renderTrafficLight(data) {
-  const { expenseRatio } = calcTotals(data);
-  const el = document.getElementById("traffic-light-section");
-  let cls, icon, status, desc;
-  if (expenseRatio <= 50) {
-    cls="green"; icon="🟢"; status="Excellent — High Savings Rate";
-    desc="Expenses below 50% of income. Outstanding financial discipline.";
-  } else if (expenseRatio <= 80) {
-    cls="yellow"; icon="🟡"; status="Warning — Limited Savings";
-    desc="Expenses between 50–80% of income. Room for improvement.";
-  } else {
-    cls="red"; icon="🔴"; status="Danger — Overspending";
-    desc="Expenses exceed 80% of income. Immediate corrective action needed.";
-  }
-  el.innerHTML = `
-    <div class="traffic-light-wrap ${cls}">
-      <div class="tl-icon">${icon}</div>
-      <div>
-        <div class="tl-status">${status}</div>
-        <div class="tl-desc">${desc}</div>
-      </div>
-      <div class="tl-pct">${expenseRatio.toFixed(1)}%</div>
-    </div>`;
-}
-
-function renderTransactionTable(data) {
-  const wrap = document.getElementById("tx-table-wrap");
-  if (!data.transactions.length) {
-    wrap.innerHTML = `<div class="empty-state"><div class="icon">📂</div><p>No transactions yet. Add an entry above or sync from Google Sheets.</p></div>`;
-    return;
-  }
-  const rows = data.transactions.map(t => `
-    <tr>
-      <td>${t.date}</td>
-      <td>${t.desc}${t.source==="sheets"?` <span class="badge badge-sheets" style="font-size:10px;padding:1px 6px">Sheets</span>`:""}</td>
-      <td><span class="badge ${t.type==="income"?"badge-income":"badge-expense"}">${t.cat}</span></td>
-      <td class="${t.type==="income"?"amount-income":"amount-expense"}">${t.type==="income"?"+":"-"}${fmt(t.amount)}</td>
-      <td><button class="btn-delete" onclick="deleteTransaction('${t.id}')">✕</button></td>
-    </tr>`).join("");
-  wrap.innerHTML = `
-    <table>
-      <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th></th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-}
-
-function renderFeedback(data) {
-  const el = document.getElementById("feedback-section");
-  const { totalIncome, totalExpenses, netBalance, savingsRate, expenseRatio } = calcTotals(data);
-  if (totalIncome === 0 && totalExpenses === 0) { el.innerHTML = ""; return; }
-
-  const cats = {};
-  data.transactions.filter(t=>t.type==="expense").forEach(t => { cats[t.cat] = (cats[t.cat]||0)+t.amount; });
-  const topCat = Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
-  const tips = [];
-
-  if (savingsRate >= 50) {
-    tips.push(`Exceptional savings rate of ${savingsRate.toFixed(1)}%. Consider deploying ${fmt(netBalance * 0.4)} into diversified index funds or ETFs.`);
-    tips.push(`At this pace, your projected annual savings stand at ${fmt(netBalance*12)} — a strong foundation for financial independence.`);
-  } else if (savingsRate >= 20) {
-    tips.push(`Your savings rate is ${savingsRate.toFixed(1)}%. Increase to 30%+ by reducing discretionary spending by ~${fmt(totalExpenses*0.1)}/month.`);
-    tips.push(`Apply the 50/30/20 rule: ≤50% needs, ≤30% wants, ≥20% savings. Currently ${expenseRatio.toFixed(0)}% goes to expenses.`);
-  } else if (savingsRate > 0) {
-    tips.push(`Critical: only ${savingsRate.toFixed(1)}% saved this month. Automate savings of at least ${fmt(totalIncome*0.1)} the day you receive income.`);
-    tips.push(`Review fixed costs — housing, subscriptions, insurance. Even a 10% reduction saves ${fmt(totalExpenses*0.1)}/month.`);
-  } else {
-    tips.push(`Deficit of ${fmt(Math.abs(netBalance))} detected. Identify and cut the top 2 expense categories by 20% each.`);
-    tips.push(`Consider additional income streams: freelance work, selling unused assets, or monetizing a skill.`);
-  }
-  if (topCat) {
-    tips.push(`Largest expense category: <strong>${topCat[0]}</strong> at ${fmt(topCat[1])} (${totalIncome>0?((topCat[1]/totalIncome)*100).toFixed(1):"N/A"}% of income). Analyze whether this is reducible.`);
-  }
-  if (totalExpenses > totalIncome) {
-    tips.push("⚠️ Spending exceeds income this month. Priority actions: cancel unused subscriptions, cook at home, defer discretionary purchases.");
-  }
-  tips.push(`Projected annual savings at this rate: ${fmt(netBalance*12)}. Small consistent improvements compound significantly over 12 months.`);
-
-  el.innerHTML = `
-    <div class="feedback-box">
-      <h3>💡 Financial Advisor — ${MONTHS_FULL[currentMonth]} ${currentYear}</h3>
-      <ul>${tips.map(t=>`<li>${t}</li>`).join("")}</ul>
-    </div>`;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   MODULE 2 — INVESTMENT TRACKER
-═══════════════════════════════════════════════════════════════ */
-function initInvestments() {
-  buildYearSelect("inv-year", invYear, y => { invYear = y; renderInvestments(); });
-  buildMonthSelector("inv-month-selector", invMonth, m => { invMonth = m; renderInvestments(); });
-  document.getElementById("inv-date").value = todayStr();
-  document.getElementById("add-inv-btn").addEventListener("click", addInvestment);
-  renderInvestments();
-}
-
-function renderInvestments() {
-  const data = DB.getInvestments(invYear, invMonth);
-  renderInvStats(data);
-  renderInvTable(data);
-}
-
-function addInvestment() {
-  const date    = document.getElementById("inv-date").value;
-  const asset   = document.getElementById("inv-asset").value.trim();
-  const type    = document.getElementById("inv-type-cat").value;
-  const capital = parseFloat(document.getElementById("inv-capital").value);
-  const value   = parseFloat(document.getElementById("inv-value").value);
-
-  if (!date || !asset || isNaN(capital) || capital <= 0 || isNaN(value)) {
-    showToast("warn", "Incomplete Entry", "Please fill in all investment fields.");
-    return;
-  }
-
-  const netProfit = value - capital;
-  const roi = (netProfit / capital) * 100;
-  const data = DB.getInvestments(invYear, invMonth);
-  data.push({ id:uid(), date, asset, type, capital, currentValue:value, netProfit, roi, source:"manual" });
-  DB.saveInvestments(invYear, invMonth, data);
-
-  document.getElementById("inv-asset").value   = "";
-  document.getElementById("inv-capital").value = "";
-  document.getElementById("inv-value").value   = "";
-  renderInvestments();
-}
-
-function deleteInvestment(id) {
-  const data = DB.getInvestments(invYear, invMonth).filter(i => i.id !== id);
-  DB.saveInvestments(invYear, invMonth, data);
-  renderInvestments();
-}
-
-function renderInvStats(data) {
-  const totalCapital = data.reduce((s,i)=>s+i.capital,0);
-  const totalValue   = data.reduce((s,i)=>s+i.currentValue,0);
-  const totalProfit  = totalValue - totalCapital;
-  const roi          = totalCapital > 0 ? (totalProfit/totalCapital)*100 : 0;
-  const cls          = roi >= 0 ? "positive" : "negative";
-  const synced       = data.filter(i=>i.source==="sheets").length;
-  document.getElementById("inv-stats").innerHTML = `
-    <div class="stat-card">
-      <div class="stat-label">Capital Deployed</div>
-      <div class="stat-value large">${fmt(totalCapital)}</div>
-      <div class="stat-sub">${data.length} position${data.length!==1?"s":""}${synced?` · ${synced} from Sheets`:""}</div>
-    </div>
-    <div class="stat-card ${cls}">
-      <div class="stat-label">Portfolio Value</div>
-      <div class="stat-value large">${fmt(totalValue)}</div>
-      <div class="stat-sub">P&amp;L: ${totalProfit>=0?"+":""}${fmt(totalProfit)}</div>
-    </div>
-    <div class="stat-card ${cls}">
-      <div class="stat-label">Weighted ROI</div>
-      <div class="stat-value large ${roi>=0?"roi-positive":"roi-negative"}">${roi.toFixed(2)}%</div>
-      <div class="stat-sub">Return on Investment</div>
-    </div>`;
-}
-
-function renderInvTable(data) {
-  const wrap = document.getElementById("inv-table-wrap");
-  if (!data.length) {
-    wrap.innerHTML = `<div class="empty-state"><div class="icon">📈</div><p>No investments logged yet.</p></div>`;
-    return;
-  }
-  const rows = data.map(i => {
-    const rc = i.roi >= 0 ? "roi-positive" : "roi-negative";
-    const sheetsTag = i.source==="sheets" ? ` <span class="badge badge-sheets" style="font-size:10px;padding:1px 6px">Sheets</span>` : "";
-    return `<tr>
-      <td>${i.date}</td>
-      <td><strong>${i.asset}</strong>${sheetsTag}</td>
-      <td><span class="badge badge-invest">${i.type}</span></td>
-      <td>${fmt(i.capital)}</td>
-      <td>${fmt(i.currentValue)}</td>
-      <td class="${rc}">${i.netProfit>=0?"+":""}${fmt(i.netProfit)}</td>
-      <td class="${rc}" style="font-weight:600">${i.roi.toFixed(2)}%</td>
-      <td><button class="btn-delete" onclick="deleteInvestment('${i.id}')">✕</button></td>
-    </tr>`;
-  }).join("");
-  wrap.innerHTML = `
-    <table>
-      <thead><tr><th>Date</th><th>Asset</th><th>Type</th><th>Capital</th><th>Current Value</th><th>P&amp;L</th><th>ROI %</th><th></th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   MODULE 3 — ANNUAL OVERVIEW
-═══════════════════════════════════════════════════════════════ */
-function initAnnual() {
-  buildYearSelect("annual-year", annualYear, y => { annualYear = y; renderAnnual(); });
-}
-
-function renderAnnual() {
-  const yearData = DB.getYearLedger(annualYear);
-  const invData  = DB.getYearInvestments(annualYear);
-
-  const mIncome   = yearData.map(m => calcTotals(m).totalIncome);
-  const mExpenses = yearData.map(m => calcTotals(m).totalExpenses);
-  const mSavings  = mIncome.map((v, i) => v - mExpenses[i]);
-
-  const totalIncome   = mIncome.reduce((s,v)=>s+v,0);
-  const totalExpenses = mExpenses.reduce((s,v)=>s+v,0);
-  const totalSavings  = mSavings.reduce((s,v)=>s+v,0);
-  const avgSavRate    = totalIncome > 0 ? (totalSavings/totalIncome)*100 : 0;
-
-  const allInv        = invData.flat();
-  const totalInvested = allInv.reduce((s,i)=>s+i.capital,0);
-  const totalInvValue = allInv.reduce((s,i)=>s+i.currentValue,0);
-  const totalInvROI   = totalInvested > 0 ? ((totalInvValue-totalInvested)/totalInvested)*100 : 0;
-
-  // Stats
-  const savCls = avgSavRate >= 20 ? "positive" : avgSavRate >= 0 ? "neutral" : "negative";
-  document.getElementById("annual-stats").innerHTML = `
-    <div class="stat-card positive">
-      <div class="stat-label">Annual Income</div>
-      <div class="stat-value large">${fmt(totalIncome)}</div>
-      <div class="stat-sub">Avg ${fmt(totalIncome/12)}/month</div>
-    </div>
-    <div class="stat-card negative">
-      <div class="stat-label">Annual Expenses</div>
-      <div class="stat-value large">${fmt(totalExpenses)}</div>
-      <div class="stat-sub">Avg ${fmt(totalExpenses/12)}/month</div>
-    </div>
-    <div class="stat-card ${savCls}">
-      <div class="stat-label">Total Saved</div>
-      <div class="stat-value large">${fmt(totalSavings)}</div>
-      <div class="stat-sub">${avgSavRate.toFixed(1)}% savings rate</div>
-    </div>`;
-
-  renderChartIncExp(mIncome, mExpenses);
-  renderChartSavings(mSavings);
-  renderChartCategories(yearData);
-  renderConsulting(totalIncome, totalExpenses, totalSavings, avgSavRate, totalInvested, totalInvValue, totalInvROI, mIncome, mExpenses);
-}
-
-// Chart 1: Income vs Expenses bar
-function renderChartIncExp(income, expenses) {
-  const ctx = document.getElementById("chart-inc-exp").getContext("2d");
-  if (chartIncExp) chartIncExp.destroy();
-  chartIncExp = new Chart(ctx, {
-    type:"bar",
-    data:{ labels:MONTHS, datasets:[
-      { label:"Income",   data:income,   backgroundColor:"rgba(107,174,142,.72)", borderColor:"rgba(107,174,142,1)", borderWidth:1, borderRadius:4 },
-      { label:"Expenses", data:expenses, backgroundColor:"rgba(192,96,96,.65)",  borderColor:"rgba(192,96,96,1)",  borderWidth:1, borderRadius:4 }
-    ]},
-    options: chartOpts()
-  });
-}
-
-// Chart 2: Net Savings bar (green/red)
-function renderChartSavings(savings) {
-  const ctx = document.getElementById("chart-savings").getContext("2d");
-  if (chartSavings) chartSavings.destroy();
-  const bg = savings.map(v => v>=0 ? "rgba(107,174,142,.72)" : "rgba(192,96,96,.65)");
-  chartSavings = new Chart(ctx, {
-    type:"bar",
-    data:{ labels:MONTHS, datasets:[{
-      label:"Net Savings", data:savings,
-      backgroundColor:bg, borderColor:bg.map(c=>c.replace(".72","1").replace(".65","1")),
-      borderWidth:1, borderRadius:4
-    }]},
-    options: chartOpts()
-  });
-}
-
-// Chart 3: Expense categories doughnut
-function renderChartCategories(yearData) {
-  const card = document.getElementById("chart-cat-card");
-  if (chartCats) { chartCats.destroy(); chartCats = null; }
-
-  const cats = {};
-  yearData.forEach(m => m.transactions.filter(t=>t.type==="expense").forEach(t => {
-    cats[t.cat] = (cats[t.cat]||0) + t.amount;
-  }));
-  const sorted = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
-
-  if (!sorted.length) {
-    card.innerHTML = `<div class="card-title">Expense Breakdown by Category</div><div class="empty-state"><div class="icon">🗂</div><p>No expense data yet.</p></div>`;
-    return;
-  }
-
-  // Ensure canvas exists (may have been replaced by empty state)
-  if (!document.getElementById("chart-categories")) {
-    card.innerHTML = `<div class="card-title">Expense Breakdown by Category</div><canvas id="chart-categories"></canvas>`;
-  }
-
-  const palette = ["#7BAFD4","#6BAE8E","#D4A843","#C06060","#A0BDD8","#8CC4A8","#E0C080","#D08080","#5090B0","#50987E"];
-  chartCats = new Chart(document.getElementById("chart-categories").getContext("2d"), {
-    type:"doughnut",
-    data:{ labels:sorted.map(([k])=>k), datasets:[{
-      data:sorted.map(([,v])=>v),
-      backgroundColor:palette.slice(0,sorted.length),
-      borderWidth:2, borderColor:"#FAFAF7"
-    }]},
-    options:{
-      responsive:true,
-      plugins:{
-        legend:{ position:"right", labels:{ font:{family:"DM Sans",size:12}, color:"#6B6560", padding:12 }},
-        tooltip:{ callbacks:{ label: c => ` ${fmt(c.raw)}` }}
-      }
-    }
-  });
-}
-
-function chartOpts() {
-  return {
-    responsive:true,
-    plugins:{
-      legend:{ labels:{ font:{family:"DM Sans",size:12}, color:"#6B6560" }},
-      tooltip:{ callbacks:{ label: c => ` ${fmt(c.raw)}` }}
-    },
-    scales:{
-      x:{ grid:{color:"rgba(0,0,0,.04)"}, ticks:{font:{family:"DM Sans",size:11},color:"#A09890"} },
-      y:{ grid:{color:"rgba(0,0,0,.04)"}, ticks:{
-        font:{family:"DM Sans",size:11}, color:"#A09890",
-        callback: v => new Intl.NumberFormat("es-CO",{notation:"compact",maximumFractionDigits:1}).format(v)
-      }}
-    }
-  };
-}
-
-// Consulting panel
-function renderConsulting(income, expenses, savings, savRate, invCapital, invValue, invROI, mIncome, mExpenses) {
-  const el         = document.getElementById("consulting-box");
-  const annualGap  = income - expenses;
-  const months     = mIncome.filter(v=>v>0).length || 1;
-  const bestMonth  = MONTHS[mIncome.indexOf(Math.max(...mIncome))];
-  const worstMonth = MONTHS[mExpenses.indexOf(Math.max(...mExpenses))];
-
-  const insights = [
-    { label:"Annual Savings Gap",                   val:fmt(annualGap),      desc: annualGap>=0?"Surplus — reinvest strategically.":"Expenses exceeded income. Structural changes needed." },
-    { label:"Avg Monthly Savings",                  val:fmt(savings/months), desc:`Based on ${months} active month(s) of data.` },
-    { label:`Projected ${annualYear+1} Income (+5%)`, val:fmt(income*1.05),  desc:"Achievable with moderate income growth." },
-    { label:"Investment Portfolio ROI",             val:invCapital>0?`${invROI.toFixed(2)}%`:"No data", desc:invCapital>0?`Unrealized P&L: ${fmt(invValue-invCapital)}`:"Log investments to see ROI." },
-    { label:"Peak Income Month",                    val:bestMonth,           desc:`Highest income recorded in ${bestMonth}.` },
-    { label:"Highest Expense Month",                val:worstMonth,          desc:`Review ${worstMonth} — highest spend detected.` },
-  ];
-
-  const advice = [];
-  if (savRate >= 30) advice.push(`🏆 <strong>High Performer:</strong> ${savRate.toFixed(1)}% savings rate places you in an elite tier. Explore tax-advantaged vehicles and target 20%+ of income in investments.`);
-  else if (savRate >= 15) advice.push(`📈 <strong>On Track:</strong> ${savRate.toFixed(1)}% savings rate. A push to 25% would meaningfully shorten your path to financial independence.`);
-  else if (savRate > 0)  advice.push(`⚡ <strong>Needs Improvement:</strong> ${savRate.toFixed(1)}% is below the 20% benchmark. Restructure using the 50/30/20 rule starting next month.`);
-  else                   advice.push(`🚨 <strong>Critical:</strong> Zero or negative savings. Prioritize cutting top 2 expense categories by 25% and automate any savings immediately.`);
-
-  if (income > 0) {
-    const ef = savings / ((expenses/12) || 1);
-    advice.push(`🛡️ <strong>Emergency Fund:</strong> At this pace, you cover ${ef.toFixed(1)} months of expenses. Target: 6 months minimum (${fmt(expenses/12*6)}).`);
-  }
-  if (invCapital > 0) {
-    const pct = (invCapital/(income||1))*100;
-    advice.push(`📊 <strong>Investment Intensity:</strong> Deployed ${pct.toFixed(1)}% of annual income (${fmt(invCapital)}) at ${invROI.toFixed(2)}% ROI. ${invROI>8?"Outperforming typical benchmarks — maintain discipline.":"Diversify to low-cost index funds to improve risk-adjusted returns."}`);
-  } else {
-    advice.push(`💡 <strong>Invest Opportunity:</strong> No investments logged this year. Deploying even 10% of income (${fmt(income*0.1)}) annually into diversified funds compounds dramatically over time.`);
-  }
-  advice.push(`📅 <strong>Annual Strategy:</strong> Review budget quarterly. Set a savings target of ${fmt(savings*1.2)} for ${annualYear+1} — 20% above current pace. Small consistent improvements are the most powerful lever.`);
-
-  el.innerHTML = `
-    <h2>Strategic Financial Report</h2>
-    <div class="sub">Annual Analytical Consulting · ${annualYear}</div>
-    <div class="consulting-insights">
-      ${insights.map(i=>`
-        <div class="insight-item">
-          <div class="insight-label">${i.label}</div>
-          <div class="insight-val">${i.val}</div>
-          <div class="insight-desc">${i.desc}</div>
-        </div>`).join("")}
-    </div>
-    <div class="annual-advice">
-      ${advice.map(a=>`<div class="advice-item">${a}</div>`).join("")}
-    </div>`;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   APP BOOTSTRAP
-═══════════════════════════════════════════════════════════════ */
-function initApp() {
-  initNav();
-  initSyncPanel();   // ← Google Sheets module (includes auto-sync on login)
-  initLedger();
-  initInvestments();
-  initAnnual();
-}
-
-document.addEventListener("DOMContentLoaded", () => { initAuth(); });
-</script>
+        // Manejador del Formulario de Ingreso
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+
+            if (u === AUTH_USER && p === AUTH_PASS) {
+                localStorage.setItem(LS_SESSION, u); // Guarda sesión de forma segura[cite: 5]
+                errorMsg.style.display = 'none';
+                showDashboard(u);
+            } else {
+                errorMsg.style.display = 'block';
+                // Animación de error por mala contraseña
+                loginView.style.transform = 'translateX(10px)';
+                setTimeout(() => loginView.style.transform = 'translateX(-10px)', 100);
+                setTimeout(() => loginView.style.transform = 'translateX(0)', 200);
+            }
+        }
+
+        // Cerrar Sesión (CORREGIDO CON LOCALSTORAGE)
+        function handleLogout() {
+            localStorage.removeItem(LS_SESSION); // Limpia la sesión[cite: 5]
+            showLogin();
+            // Limpia el formulario
+            document.getElementById('loginForm').reset();
+        }
+
+        // Cambios visuales de Interfaz
+        function showDashboard(user) {
+            loginView.classList.add('hidden');
+            dashboardView.style.display = 'block';
+            displayUser.textContent = user;
+        }
+
+        function showLogin() {
+            dashboardView.style.display = 'none';
+            loginView.classList.remove('hidden');
+        }
+
+        // Arrancar la verificación al cargar la página
+        window.onload = initAuth;
+    </script>
 </body>
 </html>
