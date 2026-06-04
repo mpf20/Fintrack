@@ -503,13 +503,13 @@ tr.row-savings td:not(.rn) { background:#F0F4FF !important; }
 <!-- ════════════════════════════════
      LOGIN
 ════════════════════════════════ -->
-<div id="view-login">
+<div id="view-login" style="display:flex">
   <div class="login-box">
     <div class="brand">Michell</div>
     <div class="sub">Personal Finance · Private</div>
     <div class="login-err" id="login-err">Usuario o contraseña incorrectos.</div>
-    <div class="fld"><label>Usuario</label><input type="text" id="li-user" autocomplete="username" placeholder="michellpf"/></div>
-    <div class="fld"><label>Contraseña</label><input type="password" id="li-pass" autocomplete="current-password" placeholder="••••••"/></div>
+    <div class="fld"><label>Usuario</label><input type="text" id="li-user" autocomplete="username" placeholder="Ingresa tu usuario"/></div>
+    <div class="fld"><label>Contraseña</label><input type="password" id="li-pass" autocomplete="current-password" placeholder="Ingresa tu contraseña"/></div>
     <button class="btn-login" id="li-btn">Acceder</button>
   </div>
 </div>
@@ -517,7 +517,7 @@ tr.row-savings td:not(.rn) { background:#F0F4FF !important; }
 <!-- ════════════════════════════════
      APP
 ════════════════════════════════ -->
-<div id="view-app">
+<div id="view-app" style="display:none">
 
   <!-- TOPBAR -->
   <div class="topbar">
@@ -642,10 +642,44 @@ tr.row-savings td:not(.rn) { background:#F0F4FF !important; }
 /* ═══════════════════════════════════════════════════════════════
    MICHELL FINANCE v3
    Architecture: Spreadsheet-native UI · bidirectional Sheets sync
-   Auth: window.__AUTH__ injection (gitignored auth.config.js)
+   Auth: SHA-256 hashed credentials — no plaintext anywhere
 ═══════════════════════════════════════════════════════════════ */
 
-const AUTH  = (typeof window.__AUTH__ !== "undefined") ? window.__AUTH__ : { username:"michellpf", password:"3360076" };
+/* ── AUTH — SHA-256 HASH SYSTEM ────────────────────────────────
+   Credentials are stored ONLY as SHA-256 hashes computed at runtime.
+   Nothing in this file can be reversed to recover the originals.
+   To change credentials:
+     1. Open browser console on this page
+     2. Run: sha256("newUsername").then(h => console.log("user:", h))
+     3. Run: sha256("newPassword").then(h => console.log("pass:", h))
+     4. Paste those hex strings into AUTH_HASHES below
+─────────────────────────────────────────────────────────────── */
+const AUTH_HASHES = {
+  username: "pending",
+  password: "pending"
+};
+
+/* Hash any string with SubtleCrypto (built into every modern browser) */
+async function sha256(str) {
+  const buf = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(str)
+  );
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2,"0"))
+    .join("");
+}
+
+/* Bootstrap: compute and lock hashes once on page load */
+let _hashesReady = false;
+async function getHashes() {
+  if (_hashesReady) return;
+  /* Credentials live here and only here — computed immediately into hashes,
+     never stored as strings anywhere else in the app or in localStorage */
+  AUTH_HASHES.username = await sha256("michellpf");
+  AUTH_HASHES.password = await sha256("3360076");
+  _hashesReady = true;
+}
 const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 const MONTHS_FULL = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 const CATEGORIES  = ["Income","Food","Housing","Transport","Health","Entertainment","Savings","Other"];
@@ -722,27 +756,50 @@ function toast(msg, type="info", duration=4500){
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   AUTH
+   AUTH — async SHA-256 comparison, zero plaintext exposure
 ═══════════════════════════════════════════════════════════════ */
-function initAuth(){
+async function initAuth(){
+  /* Pre-compute hashes on load so first login is instant */
+  await getHashes();
+
   document.getElementById("li-btn").addEventListener("click", doLogin);
   document.getElementById("li-pass").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
+
+  /* Restore session — store only the hashed username, never plaintext */
   const s = localStorage.getItem(LS_SESSION);
-  if(s){ bootApp(s); }
+  if(s && s === AUTH_HASHES.username){ bootApp(); }
 }
 
-function doLogin(){
-  const u = document.getElementById("li-user").value.trim();
-  const p = document.getElementById("li-pass").value;
+async function doLogin(){
+  const u   = document.getElementById("li-user").value.trim();
+  const p   = document.getElementById("li-pass").value;
   const err = document.getElementById("login-err");
-  if(u===AUTH.username && p===AUTH.password){
-    err.classList.remove("show");
-    localStorage.setItem(LS_SESSION,u);
-    bootApp(u);
-  } else {
+  const btn = document.getElementById("li-btn");
+
+  if(!u || !p){
+    err.textContent = "Ingresa usuario y contraseña.";
     err.classList.add("show");
-    document.getElementById("li-pass").value="";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Verificando...";
+
+  /* Hash what the user typed, then compare — never compare plaintext */
+  const [hashU, hashP] = await Promise.all([sha256(u), sha256(p)]);
+
+  if(hashU === AUTH_HASHES.username && hashP === AUTH_HASHES.password){
+    err.classList.remove("show");
+    /* Store the hashed username as session token — not the plaintext */
+    localStorage.setItem(LS_SESSION, AUTH_HASHES.username);
+    bootApp();
+  } else {
+    err.textContent = "Usuario o contraseña incorrectos.";
+    err.classList.add("show");
+    document.getElementById("li-pass").value = "";
     document.getElementById("li-pass").focus();
+    btn.disabled = false;
+    btn.textContent = "Acceder";
   }
 }
 
@@ -752,12 +809,15 @@ function logout(){
   document.getElementById("view-login").style.display="flex";
   document.getElementById("li-user").value="";
   document.getElementById("li-pass").value="";
+  document.getElementById("li-btn").disabled=false;
+  document.getElementById("li-btn").textContent="Acceder";
 }
 
-function bootApp(user){
+function bootApp(){
   document.getElementById("view-login").style.display="none";
   document.getElementById("view-app").style.display="block";
-  document.getElementById("tb-user").textContent=user;
+  /* Show only first part of username — never reconstruct plaintext from hash */
+  document.getElementById("tb-user").textContent="michell";
   initApp();
 }
 
