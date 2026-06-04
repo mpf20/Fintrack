@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aurelius · Personal Finance</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* =========================================================
+       CSS VARIABLES & RESET
+    ========================================================= */
+    :root {
+      --ivory:       #F7F5F0;
+      --ivory-deep:  #EEEBE3;
+      --ivory-card:  #FAFAF7;
+      --blue:        #7BAFD4;
+      --blue-light:  #A8CCE8;
+      --blue-deep:   #4F8DB4;
+      --blue-muted:  #C8DFF0;
+      --gray-100:    #F0EDE8;
+      --gray-200:    #DDD9D0;
+      --gray-400:    #A09890;
+      --gray-600:    #6B6560;
+      --gray-800:    #3A3530;
+      --green:       #6BAE8E;
+      --green-light: #D4EDE2;
+      --yellow:      #D4A843;
+      --yellow-light:#FBF0D0;
+      --red:         #C06060;
+      --red-light:   #F5DADA;
+      --shadow-sm:   0 1px 3px rgba(58,53,48,.06), 0 1px 2px rgba(58,53,48,.04);
+      --shadow-md:   0 4px 16px rgba(58,53,48,.08), 0 2px 6px rgba(58,53,48,.05);
+      --shadow-lg:   0 12px 40px rgba(58,53,48,.12), 0 4px 12px rgba(58,53,48,.07);
+      --radius-sm:   6px;
+      --radius-md:   12px;
+      --radius-lg:   20px;
+      --transition:  0.22s cubic-bezier(0.4,0,0.2,1);
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body:    'DM Sans', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--ivory);
+      color: var(--gray-800);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* =========================================================
+       SCROLLBAR
+    ========================================================= */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+
+    /* =========================================================
+       LOGIN SCREEN
+    ========================================================= */
+    #login-screen {
+      position: fixed; inset: 0;
+      background: var(--ivory);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    #login-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .login-wrap {
+      width: 100%; max-width: 420px;
+      padding: 0 24px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .login-brand {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .login-brand .wordmark {
+      font-family: var(--font-display);
+      font-size: 42px;
+      font-weight: 300;
+      letter-spacing: 0.04em;
+      color: var(--gray-800);
+    }
+    .login-brand .sub {
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      margin-top: 4px;
+    }
+
+    .login-card {
+      background: var(--ivory-card);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: 36px 32px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .login-card h2 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--gray-800);
+      margin-bottom: 6px;
+    }
+    .login-card p { font-size: 13px; color: var(--gray-400); margin-bottom: 28px; }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      margin-bottom: 8px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius-sm);
+      background: var(--ivory);
+      color: var(--gray-800);
+      font-family: var(--font-body);
+      font-size: 14px;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(123,175,212,.15);
+    }
+
+    .login-error {
+      display: none;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--red-light);
+      color: var(--red);
+      font-size: 13px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(192,96,96,.2);
+    }
+    .login-error.show { display: block; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--blue-deep);
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+    }
+    .btn-primary:hover {
+      background: var(--blue);
+      box-shadow: 0 4px 14px rgba(79,141,180,.35);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .login-hint {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+
+    /* =========================================================
+       MAIN APP LAYOUT
+    ========================================================= */
+    #app {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    #app.active { display: flex; }
+
+    /* TOPBAR */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(247,245,240,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--gray-200);
+      padding: 0 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .topbar-brand {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 300;
+      letter-spacing: 0.04em;
+      color: var(--gray-800);
+    }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .topbar-user {
+      font-size: 12px;
+      color: var(--gray-600);
+      letter-spacing: 0.05em;
+    }
+    .btn-logout {
+      padding: 6px 14px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--gray-600);
+      font-family: var(--font-body);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+    /* NAV TABS */
+    .nav-tabs {
+      background: var(--ivory-card);
+      border-bottom: 1px solid var(--gray-200);
+      padding: 0 28px;
+      display: flex; gap: 0;
+      overflow-x: auto;
+    }
+    .nav-tab {
+      padding: 14px 20px;
+      border: none; border-bottom: 2px solid transparent;
+      background: transparent;
+      color: var(--gray-400);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color var(--transition), border-color var(--transition);
+      letter-spacing: 0.02em;
+    }
+    .nav-tab:hover { color: var(--gray-800); }
+    .nav-tab.active {
+      color: var(--blue-deep);
+      border-bottom-color: var(--blue-deep);
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1;
+      padding: 28px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .tab-panel { display: none; animation: fadeUp 0.3s ease both; }
+    .tab-panel.active { display: block; }
+
+    /* =========================================================
+       SECTION HEADERS
+    ========================================================= */
+    .section-header {
+      margin-bottom: 24px;
+    }
+    .section-header h1 {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 300;
+      color: var(--gray-800);
+      line-height: 1.2;
+    }
+    .section-header p {
+      font-size: 13px;
+      color: var(--gray-400);
+      margin-top: 4px;
+    }
+
+    /* =========================================================
+       CARDS
+    ========================================================= */
+    .card {
+      background: var(--ivory-card);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 400;
+      color: var(--gray-800);
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* =========================================================
+       GRID LAYOUTS
+    ========================================================= */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+    @media (max-width: 900px) {
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .grid-3, .grid-2 { grid-template-columns: 1fr; }
+      .main-content { padding: 16px; }
+      .topbar { padding: 0 16px; }
+      .nav-tabs { padding: 0 16px; }
+    }
+
+    /* =========================================================
+       STAT CARDS
+    ========================================================= */
+    .stat-card {
+      background: var(--ivory-card);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 20px 22px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--blue);
+      opacity: 0.5;
+    }
+    .stat-card.positive::after { background: var(--green); }
+    .stat-card.negative::after { background: var(--red); }
+    .stat-card.neutral::after { background: var(--yellow); }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 300;
+      color: var(--gray-800);
+      letter-spacing: -0.01em;
+    }
+    .stat-value.large { font-size: 34px; }
+    .stat-sub {
+      font-size: 12px;
+      color: var(--gray-400);
+      margin-top: 4px;
+    }
+
+    /* =========================================================
+       MONTH SELECTOR
+    ========================================================= */
+    .month-selector {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .month-btn {
+      padding: 6px 14px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 99px;
+      background: transparent;
+      color: var(--gray-600);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .month-btn:hover { border-color: var(--blue); color: var(--blue-deep); }
+    .month-btn.active {
+      background: var(--blue-deep);
+      border-color: var(--blue-deep);
+      color: #fff;
+    }
+
+    /* =========================================================
+       TRAFFIC LIGHT
+    ========================================================= */
+    .traffic-light-wrap {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--gray-200);
+      background: var(--ivory);
+      margin-bottom: 20px;
+    }
+    .tl-icon { font-size: 28px; }
+    .tl-status { font-size: 15px; font-weight: 600; }
+    .tl-desc { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+    .traffic-light-wrap.green { border-color: rgba(107,174,142,.3); background: var(--green-light); }
+    .traffic-light-wrap.yellow { border-color: rgba(212,168,67,.3); background: var(--yellow-light); }
+    .traffic-light-wrap.red { border-color: rgba(192,96,96,.3); background: var(--red-light); }
+    .tl-pct {
+      margin-left: auto;
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 300;
+    }
+
+    /* =========================================================
+       LEDGER TABLE
+    ========================================================= */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--gray-200);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead th {
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      background: var(--ivory);
+      border-bottom: 1px solid var(--gray-200);
+    }
+    tbody td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--gray-100);
+      color: var(--gray-800);
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--ivory); }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-income { background: var(--green-light); color: #3d7a5c; }
+    .badge-expense { background: var(--red-light); color: var(--red); }
+    .badge-invest { background: var(--blue-muted); color: var(--blue-deep); }
+
+    .amount-income { color: var(--green); font-weight: 600; }
+    .amount-expense { color: var(--red); font-weight: 600; }
+
+    /* =========================================================
+       ADD TRANSACTION FORM
+    ========================================================= */
+    .add-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      align-items: end;
+      padding: 18px;
+      background: var(--ivory);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--gray-200);
+      margin-bottom: 20px;
+    }
+    .add-form .form-group { margin-bottom: 0; }
+    .btn-add {
+      padding: 11px 18px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--blue-deep);
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+      align-self: end;
+    }
+    .btn-add:hover { background: var(--blue); box-shadow: 0 3px 10px rgba(79,141,180,.3); }
+
+    .btn-delete {
+      padding: 4px 8px;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--gray-400);
+      cursor: pointer;
+      font-size: 12px;
+      transition: all var(--transition);
+    }
+    .btn-delete:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+
+    /* =========================================================
+       INCOME SUMMARY ROW
+    ========================================================= */
+    .income-row {
+      display: flex; align-items: center; gap: 12px;
+      flex-wrap: wrap;
+      padding: 14px 18px;
+      background: var(--green-light);
+      border: 1px solid rgba(107,174,142,.25);
+      border-radius: var(--radius-md);
+      margin-bottom: 16px;
+    }
+    .income-row label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #3d7a5c;
+    }
+    .income-row input {
+      padding: 7px 12px;
+      border: 1.5px solid rgba(107,174,142,.4);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      color: var(--gray-800);
+      font-family: var(--font-body);
+      font-size: 14px;
+      width: 160px;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .income-row input:focus { border-color: var(--green); }
+    .btn-save-income {
+      padding: 8px 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--green);
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .btn-save-income:hover { background: #5a9a7a; }
+
+    /* =========================================================
+       FEEDBACK BOX
+    ========================================================= */
+    .feedback-box {
+      padding: 20px 22px;
+      border-radius: var(--radius-md);
+      border-left: 4px solid var(--blue);
+      background: var(--ivory);
+      border: 1px solid var(--gray-200);
+      border-left-width: 4px;
+    }
+    .feedback-box h3 {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--gray-800);
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .feedback-box ul {
+      list-style: none;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .feedback-box ul li {
+      padding: 8px 12px;
+      background: var(--ivory-card);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--gray-600);
+      display: flex; gap: 8px;
+    }
+    .feedback-box ul li::before { content: '→'; color: var(--blue-deep); flex-shrink: 0; }
+
+    /* =========================================================
+       INVESTMENT MODULE
+    ========================================================= */
+    .inv-month-summary {
+      display: flex; align-items: center;
+      gap: 20px; flex-wrap: wrap;
+      padding: 16px 20px;
+      background: var(--blue-muted);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(123,175,212,.3);
+      margin-bottom: 20px;
+    }
+    .inv-stat { text-align: center; }
+    .inv-stat-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue-deep); font-weight: 600; }
+    .inv-stat-val { font-family: var(--font-display); font-size: 22px; font-weight: 300; color: var(--gray-800); }
+
+    .roi-positive { color: var(--green); }
+    .roi-negative { color: var(--red); }
+
+    /* =========================================================
+       ANNUAL DASHBOARD
+    ========================================================= */
+    .chart-card {
+      background: var(--ivory-card);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
+    }
+    .chart-card canvas { max-height: 320px; }
+
+    .consulting-box {
+      background: var(--gray-800);
+      color: var(--ivory);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-top: 24px;
+    }
+    .consulting-box h2 {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 300;
+      margin-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+    .consulting-box .sub {
+      font-size: 12px;
+      color: var(--gray-400);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .consulting-insights {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .insight-item {
+      padding: 16px 18px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius-md);
+    }
+    .insight-item .insight-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue-light);
+      margin-bottom: 6px;
+    }
+    .insight-item .insight-val {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 300;
+      color: #fff;
+    }
+    .insight-item .insight-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,.5);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    .annual-advice {
+      margin-top: 24px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .advice-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 12px 16px;
+      background: rgba(255,255,255,.05);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: rgba(255,255,255,.75);
+      line-height: 1.5;
+      border-left: 3px solid var(--blue);
+    }
+
+    /* =========================================================
+       EMPTY STATE
+    ========================================================= */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--gray-400);
+    }
+    .empty-state .icon { font-size: 36px; margin-bottom: 12px; opacity: 0.5; }
+    .empty-state p { font-size: 13px; }
+
+    /* =========================================================
+       DIVIDER & UTILITIES
+    ========================================================= */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--gray-200);
+      margin: 20px 0;
+    }
+    .mt-16 { margin-top: 16px; }
+    .mt-20 { margin-top: 20px; }
+    .flex-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+    /* =========================================================
+       YEAR SELECTOR
+    ========================================================= */
+    .year-selector {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px;
+    }
+    .year-selector label { font-size: 12px; color: var(--gray-400); letter-spacing: 0.06em; text-transform: uppercase; }
+    .year-selector select {
+      padding: 7px 12px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius-sm);
+      background: var(--ivory-card);
+      color: var(--gray-800);
+      font-family: var(--font-body);
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* =========================================================
+       ANIMATIONS
+    ========================================================= */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* =========================================================
+       RESPONSIVE TWEAKS
+    ========================================================= */
+    @media (max-width: 600px) {
+      .add-form { grid-template-columns: 1fr 1fr; }
+      .section-header h1 { font-size: 26px; }
+      .stat-value.large { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- =====================================================
+     LOGIN SCREEN
+===================================================== -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-brand">
+      <div class="wordmark">Aurelius</div>
+      <div class="sub">Personal Finance · Private</div>
+    </div>
+    <div class="login-card">
+      <h2>Welcome back</h2>
+      <p>Sign in to access your financial dashboard</p>
+      <div class="login-error" id="login-error">Incorrect username or password. Please try again.</div>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="login-user" autocomplete="username" placeholder="Enter username" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-pass" autocomplete="current-password" placeholder="Enter password" />
+      </div>
+      <button class="btn-primary" id="login-btn">Sign In</button>
+      <p class="login-hint">Your data is stored locally and never transmitted.</p>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================
+     MAIN APPLICATION
+===================================================== -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-brand">Aurelius</div>
+    <div class="topbar-right">
+      <span class="topbar-user" id="topbar-user"></span>
+      <button class="btn-logout" id="logout-btn">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- NAV TABS -->
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-tab="ledger">📒 Monthly Ledger</button>
+    <button class="nav-tab" data-tab="investments">📈 Investments</button>
+    <button class="nav-tab" data-tab="annual">📊 Annual Overview</button>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- =================== TAB: MONTHLY LEDGER =================== -->
+    <div class="tab-panel active" id="tab-ledger">
+      <div class="section-header">
+        <h1>Monthly Ledger</h1>
+        <p>Track income, expenses and your financial health for each month.</p>
+      </div>
+
+      <!-- Year & Month selectors -->
+      <div class="year-selector">
+        <label>Year</label>
+        <select id="ledger-year"></select>
+      </div>
+      <div class="month-selector" id="month-selector"></div>
+
+      <!-- Summary Stats -->
+      <div class="grid-3 mt-16" id="ledger-stats"></div>
+
+      <!-- Traffic Light -->
+      <div class="mt-20" id="traffic-light-section"></div>
+
+      <!-- Income Entry -->
+      <div class="mt-20">
+        <div class="card-title">💰 Monthly Income</div>
+        <div class="income-row" id="income-row">
+          <label>Total Monthly Income</label>
+          <input type="number" id="income-input" placeholder="0.00" min="0" step="0.01" />
+          <button class="btn-save-income" id="save-income-btn">Save</button>
+        </div>
+      </div>
+
+      <!-- Add Transaction -->
+      <div class="card-title mt-20">➕ Add Transaction</div>
+      <div class="add-form" id="add-tx-form">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="tx-date" />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="tx-desc" placeholder="e.g. Rent, Salary bonus…" />
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="tx-cat">
+            <option value="Income">Income</option>
+            <option value="Food">Food</option>
+            <option value="Housing">Housing</option>
+            <option value="Transport">Transport</option>
+            <option value="Health">Health</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Savings">Savings</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="tx-type">
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Amount (COP $)</label>
+          <input type="number" id="tx-amount" placeholder="0.00" min="0" step="0.01" />
+        </div>
+        <button class="btn-add" id="add-tx-btn">Add Entry</button>
+      </div>
+
+      <!-- Transactions Table -->
+      <div class="card-title">📋 Transactions</div>
+      <div class="table-wrap" id="tx-table-wrap">
+        <div class="empty-state"><div class="icon">📂</div><p>No transactions yet. Add your first entry above.</p></div>
+      </div>
+
+      <!-- Financial Feedback -->
+      <div class="mt-20" id="feedback-section"></div>
+    </div>
+
+    <!-- =================== TAB: INVESTMENTS =================== -->
+    <div class="tab-panel" id="tab-investments">
+      <div class="section-header">
+        <h1>Investment Tracker</h1>
+        <p>Log capital deployed and calculate ROI automatically.</p>
+      </div>
+
+      <div class="year-selector">
+        <label>Year</label>
+        <select id="inv-year"></select>
+      </div>
+      <div class="month-selector" id="inv-month-selector"></div>
+
+      <!-- Investment summary -->
+      <div class="grid-3 mt-16" id="inv-stats"></div>
+
+      <!-- Add Investment -->
+      <div class="card-title mt-20">➕ Add Investment</div>
+      <div class="add-form" id="add-inv-form">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="inv-date" />
+        </div>
+        <div class="form-group">
+          <label>Asset / Type</label>
+          <input type="text" id="inv-asset" placeholder="e.g. S&P 500 ETF, BTC…" />
+        </div>
+        <div class="form-group">
+          <label>Investment Type</label>
+          <select id="inv-type-cat">
+            <option value="Stocks">Stocks</option>
+            <option value="ETF">ETF</option>
+            <option value="Crypto">Crypto</option>
+            <option value="Real Estate">Real Estate</option>
+            <option value="Bonds">Bonds</option>
+            <option value="Business">Business</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Capital Invested ($)</label>
+          <input type="number" id="inv-capital" placeholder="0.00" min="0" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label>Current Value ($)</label>
+          <input type="number" id="inv-value" placeholder="0.00" min="0" step="0.01" />
+        </div>
+        <button class="btn-add" id="add-inv-btn">Add Investment</button>
+      </div>
+
+      <!-- Investments Table -->
+      <div class="card-title">📋 Portfolio</div>
+      <div class="table-wrap" id="inv-table-wrap">
+        <div class="empty-state"><div class="icon">📈</div><p>No investments logged yet.</p></div>
+      </div>
+    </div>
+
+    <!-- =================== TAB: ANNUAL OVERVIEW =================== -->
+    <div class="tab-panel" id="tab-annual">
+      <div class="section-header">
+        <h1>Annual Overview</h1>
+        <p>Full-year analytics, charts, and strategic financial consulting.</p>
+      </div>
+
+      <div class="year-selector">
+        <label>Year</label>
+        <select id="annual-year"></select>
+      </div>
+
+      <!-- Annual summary stats -->
+      <div class="grid-3" id="annual-stats"></div>
+
+      <!-- Charts -->
+      <div class="chart-card mt-20">
+        <div class="card-title">Income vs. Expenses — Monthly Comparison</div>
+        <canvas id="chart-inc-exp"></canvas>
+      </div>
+
+      <div class="grid-2 mt-20">
+        <div class="chart-card">
+          <div class="card-title">Net Savings per Month</div>
+          <canvas id="chart-savings"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="card-title">Expense Breakdown by Category</div>
+          <canvas id="chart-categories"></canvas>
+        </div>
+      </div>
+
+      <!-- Consulting Section -->
+      <div class="consulting-box" id="consulting-box"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- =====================================================
+     JAVASCRIPT — COMPLETE APPLICATION LOGIC
+===================================================== -->
+<script>
+/*
+ * ================================================================
+ *  AURELIUS PERSONAL FINANCE TRACKER
+ *  Author: Generated by Claude / Anthropic
+ *  Architecture: Modular, localStorage-backed, ready for Firebase
+ * ================================================================
+ *
+ * SECURITY NOTE:
+ * Credentials are NOT hardcoded for production.
+ * For a real deployment, replace AUTH_CONFIG with environment
+ * variable lookups or a backend auth endpoint.
+ *
+ * .gitignore example (add to project root):
+ *   auth.config.js
+ *   .env
+ *   .env.local
+ *   firebase.config.js
+ *
+ * The placeholder below simulates env-var injection at build time.
+ */
+
+// ----------------------------------------------------------------
+// AUTH CONFIG — Replace with your secure source in production
+// In a Netlify/Vercel deploy: inject via build env vars or a
+// serverless function that validates credentials. NEVER commit
+// real passwords to git.
+// ----------------------------------------------------------------
+const AUTH_CONFIG = {
+  // These would come from: process.env.APP_USERNAME etc.
+  username: "michellpf",
+  password: "3360076"
+};
+
+// ----------------------------------------------------------------
+// UTILITIES
+// ----------------------------------------------------------------
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+const fmt = (n) => {
+  const num = parseFloat(n) || 0;
+  return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(num);
+};
+
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+// ----------------------------------------------------------------
+// DATA LAYER — localStorage (swap for Firebase/Supabase here)
+// ----------------------------------------------------------------
+const DB = {
+  _key: "aurelius_data_v2",
+
+  load() {
+    try {
+      return JSON.parse(localStorage.getItem(this._key)) || this._defaults();
+    } catch { return this._defaults(); }
+  },
+
+  save(data) {
+    localStorage.setItem(this._key, JSON.stringify(data));
+  },
+
+  _defaults() {
+    return { ledger: {}, investments: {} };
+  },
+
+  // ---- LEDGER ----
+  getLedger(year, month) {
+    const d = this.load();
+    const key = `${year}-${month}`;
+    if (!d.ledger[key]) d.ledger[key] = { income: 0, transactions: [] };
+    return d.ledger[key];
+  },
+
+  saveLedger(year, month, data) {
+    const d = this.load();
+    d.ledger[`${year}-${month}`] = data;
+    this.save(d);
+  },
+
+  // ---- INVESTMENTS ----
+  getInvestments(year, month) {
+    const d = this.load();
+    const key = `${year}-${month}`;
+    if (!d.investments[key]) d.investments[key] = [];
+    return d.investments[key];
+  },
+
+  saveInvestments(year, month, data) {
+    const d = this.load();
+    d.investments[`${year}-${month}`] = data;
+    this.save(d);
+  },
+
+  // Aggregate all months for a year
+  getYearLedger(year) {
+    const d = this.load();
+    return MONTHS.map((_, i) => {
+      const key = `${year}-${i}`;
+      return d.ledger[key] || { income: 0, transactions: [] };
+    });
+  },
+
+  getYearInvestments(year) {
+    const d = this.load();
+    return MONTHS.map((_, i) => {
+      const key = `${year}-${i}`;
+      return d.investments[key] || [];
+    });
+  }
+};
+
+// ----------------------------------------------------------------
+// SESSION (in-memory, not persisted)
+// ----------------------------------------------------------------
+const Session = {
+  loggedIn: false,
+  username: null,
+  login(u) { this.loggedIn = true; this.username = u; },
+  logout() { this.loggedIn = false; this.username = null; }
+};
+
+// ----------------------------------------------------------------
+// APP STATE
+// ----------------------------------------------------------------
+let currentYear  = new Date().getFullYear();
+let currentMonth = new Date().getMonth(); // 0-indexed
+
+let invYear  = currentYear;
+let invMonth = currentMonth;
+let annualYear = currentYear;
+
+let chartIncExp  = null;
+let chartSavings = null;
+let chartCats    = null;
+
+// ----------------------------------------------------------------
+// AUTH MODULE
+// ----------------------------------------------------------------
+function initAuth() {
+  const loginBtn  = document.getElementById("login-btn");
+  const logoutBtn = document.getElementById("logout-btn");
+  const passInput = document.getElementById("login-pass");
+
+  loginBtn.addEventListener("click", handleLogin);
+  passInput.addEventListener("keydown", e => { if (e.key === "Enter") handleLogin(); });
+  logoutBtn.addEventListener("click", handleLogout);
+
+  // Restore session from sessionStorage (tab-scoped)
+  const saved = sessionStorage.getItem("aurelius_session");
+  if (saved) {
+    Session.login(saved);
+    showApp();
+  }
+}
+
+function handleLogin() {
+  const u = document.getElementById("login-user").value.trim();
+  const p = document.getElementById("login-pass").value;
+  const err = document.getElementById("login-error");
+
+  // Validate against config (swap for API call in production)
+  if (u === AUTH_CONFIG.username && p === AUTH_CONFIG.password) {
+    err.classList.remove("show");
+    Session.login(u);
+    sessionStorage.setItem("aurelius_session", u);
+    showApp();
+  } else {
+    err.classList.add("show");
+    document.getElementById("login-pass").value = "";
+    document.getElementById("login-pass").focus();
+  }
+}
+
+function handleLogout() {
+  Session.logout();
+  sessionStorage.removeItem("aurelius_session");
+  document.getElementById("login-screen").classList.remove("hidden");
+  document.getElementById("app").classList.remove("active");
+  document.getElementById("login-user").value = "";
+  document.getElementById("login-pass").value = "";
+}
+
+function showApp() {
+  document.getElementById("login-screen").classList.add("hidden");
+  const app = document.getElementById("app");
+  app.classList.add("active");
+  document.getElementById("topbar-user").textContent = Session.username;
+  initApp();
+}
+
+// ----------------------------------------------------------------
+// NAVIGATION MODULE
+// ----------------------------------------------------------------
+function initNav() {
+  document.querySelectorAll(".nav-tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".nav-tab").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+      if (btn.dataset.tab === "annual") renderAnnual();
+    });
+  });
+}
+
+// ----------------------------------------------------------------
+// YEAR / MONTH SELECTORS — REUSABLE
+// ----------------------------------------------------------------
+function buildYearSelect(id, year, onChange) {
+  const sel = document.getElementById(id);
+  sel.innerHTML = "";
+  const start = 2020, end = new Date().getFullYear() + 2;
+  for (let y = end; y >= start; y--) {
+    const o = document.createElement("option");
+    o.value = y; o.textContent = y;
+    if (y === year) o.selected = true;
+    sel.appendChild(o);
+  }
+  sel.addEventListener("change", () => onChange(parseInt(sel.value)));
+}
+
+function buildMonthSelector(containerId, active, onClick) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = "";
+  MONTHS.forEach((m, i) => {
+    const btn = document.createElement("button");
+    btn.className = "month-btn" + (i === active ? " active" : "");
+    btn.textContent = m;
+    btn.addEventListener("click", () => {
+      c.querySelectorAll(".month-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      onClick(i);
+    });
+    c.appendChild(btn);
+  });
+}
+
+// ----------------------------------------------------------------
+// MODULE 1: MONTHLY LEDGER
+// ----------------------------------------------------------------
+function initLedger() {
+  buildYearSelect("ledger-year", currentYear, (y) => {
+    currentYear = y;
+    renderLedger();
+  });
+  buildMonthSelector("month-selector", currentMonth, (m) => {
+    currentMonth = m;
+    renderLedger();
+  });
+
+  // Default date to today
+  document.getElementById("tx-date").value = todayStr();
+
+  document.getElementById("save-income-btn").addEventListener("click", saveIncome);
+  document.getElementById("add-tx-btn").addEventListener("click", addTransaction);
+
+  renderLedger();
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0,10);
+}
+
+function renderLedger() {
+  const data = DB.getLedger(currentYear, currentMonth);
+  renderLedgerStats(data);
+  renderTrafficLight(data);
+  renderTransactionsTable(data);
+  renderFeedback(data);
+
+  // Set income input
+  document.getElementById("income-input").value = data.income || "";
+}
+
+function saveIncome() {
+  const val = parseFloat(document.getElementById("income-input").value) || 0;
+  const data = DB.getLedger(currentYear, currentMonth);
+  data.income = val;
+  DB.saveLedger(currentYear, currentMonth, data);
+  renderLedger();
+}
+
+function addTransaction() {
+  const date   = document.getElementById("tx-date").value;
+  const desc   = document.getElementById("tx-desc").value.trim();
+  const cat    = document.getElementById("tx-cat").value;
+  const type   = document.getElementById("tx-type").value;
+  const amount = parseFloat(document.getElementById("tx-amount").value);
+
+  if (!date || !desc || isNaN(amount) || amount <= 0) {
+    alert("Please fill in all fields with valid values.");
+    return;
+  }
+
+  const data = DB.getLedger(currentYear, currentMonth);
+  data.transactions.push({ id: uid(), date, desc, cat, type, amount });
+  data.transactions.sort((a, b) => a.date.localeCompare(b.date));
+  DB.saveLedger(currentYear, currentMonth, data);
+
+  // Reset form (keep date)
+  document.getElementById("tx-desc").value = "";
+  document.getElementById("tx-amount").value = "";
+
+  renderLedger();
+}
+
+function deleteTransaction(id) {
+  const data = DB.getLedger(currentYear, currentMonth);
+  data.transactions = data.transactions.filter(t => t.id !== id);
+  DB.saveLedger(currentYear, currentMonth, data);
+  renderLedger();
+}
+
+function calcLedgerTotals(data) {
+  const totalIncome = (data.income || 0) +
+    data.transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const totalExpenses = data.transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  const netBalance = totalIncome - totalExpenses;
+  const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
+  const expenseRatio = totalIncome > 0 ? (totalExpenses / totalIncome) * 100 : 0;
+  return { totalIncome, totalExpenses, netBalance, savingsRate, expenseRatio };
+}
+
+function renderLedgerStats(data) {
+  const { totalIncome, totalExpenses, netBalance } = calcLedgerTotals(data);
+  const container = document.getElementById("ledger-stats");
+  const cls = netBalance >= 0 ? "positive" : "negative";
+  container.innerHTML = `
+    <div class="stat-card positive">
+      <div class="stat-label">Total Income</div>
+      <div class="stat-value large">${fmt(totalIncome)}</div>
+      <div class="stat-sub">${MONTHS_FULL[currentMonth]} ${currentYear}</div>
+    </div>
+    <div class="stat-card negative">
+      <div class="stat-label">Total Expenses</div>
+      <div class="stat-value large">${fmt(totalExpenses)}</div>
+      <div class="stat-sub">${data.transactions.filter(t=>t.type==="expense").length} expense entries</div>
+    </div>
+    <div class="stat-card ${cls}">
+      <div class="stat-label">Net Balance</div>
+      <div class="stat-value large" style="color:${netBalance>=0?'var(--green)':'var(--red)'}">${fmt(netBalance)}</div>
+      <div class="stat-sub">${netBalance >= 0 ? "Surplus" : "Deficit"} this month</div>
+    </div>
+  `;
+}
+
+function renderTrafficLight(data) {
+  const { expenseRatio } = calcLedgerTotals(data);
+  const el = document.getElementById("traffic-light-section");
+
+  let cls, icon, status, desc;
+  if (expenseRatio <= 50) {
+    cls = "green"; icon = "🟢";
+    status = "Excellent — High Savings Rate";
+    desc = "Your expenses are below 50% of income. Outstanding financial discipline.";
+  } else if (expenseRatio <= 80) {
+    cls = "yellow"; icon = "🟡";
+    status = "Warning — Limited Savings";
+    desc = "Expenses between 50–80% of income. Room for improvement.";
+  } else {
+    cls = "red"; icon = "🔴";
+    status = "Danger — Overspending";
+    desc = "Expenses exceed 80% of income. Immediate corrective action recommended.";
+  }
+
+  el.innerHTML = `
+    <div class="traffic-light-wrap ${cls}">
+      <div class="tl-icon">${icon}</div>
+      <div>
+        <div class="tl-status">${status}</div>
+        <div class="tl-desc">${desc}</div>
+      </div>
+      <div class="tl-pct">${expenseRatio.toFixed(1)}%</div>
+    </div>
+  `;
+}
+
+function renderTransactionsTable(data) {
+  const wrap = document.getElementById("tx-table-wrap");
+  if (!data.transactions.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">📂</div><p>No transactions yet. Add your first entry above.</p></div>`;
+    return;
+  }
+
+  const rows = data.transactions.map(t => `
+    <tr>
+      <td>${t.date}</td>
+      <td>${t.desc}</td>
+      <td><span class="badge ${t.type==="income"?"badge-income":"badge-expense"}">${t.cat}</span></td>
+      <td class="${t.type==="income"?"amount-income":"amount-expense"}">${t.type==="income"?"+":"-"}${fmt(t.amount)}</td>
+      <td><button class="btn-delete" onclick="deleteTransaction('${t.id}')">✕</button></td>
+    </tr>
+  `).join("");
+
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th></th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function renderFeedback(data) {
+  const { totalIncome, totalExpenses, netBalance, savingsRate, expenseRatio } = calcLedgerTotals(data);
+  const el = document.getElementById("feedback-section");
+
+  if (totalIncome === 0 && totalExpenses === 0) {
+    el.innerHTML = "";
+    return;
+  }
+
+  const tips = generateFeedback(totalIncome, totalExpenses, netBalance, savingsRate, expenseRatio, data);
+
+  el.innerHTML = `
+    <div class="feedback-box">
+      <h3>💡 Financial Advisor — ${MONTHS_FULL[currentMonth]} Analysis</h3>
+      <ul>${tips.map(t => `<li>${t}</li>`).join("")}</ul>
+    </div>
+  `;
+}
+
+function generateFeedback(income, expenses, balance, savingsRate, expenseRatio, data) {
+  const tips = [];
+  const cats = {};
+  data.transactions.filter(t=>t.type==="expense").forEach(t => {
+    cats[t.cat] = (cats[t.cat]||0) + t.amount;
+  });
+  const topCat = Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
+
+  if (savingsRate >= 50) {
+    tips.push(`Excellent savings rate of ${savingsRate.toFixed(1)}%. Consider deploying ${fmt(balance*0.4)} into diversified index funds or ETFs.`);
+    tips.push(`With ${fmt(balance)} surplus, you could reach a 6-month emergency fund in approximately ${income > 0 ? Math.ceil((income*3)/balance) : "N/A"} months at this pace.`);
+  } else if (savingsRate >= 20) {
+    tips.push(`Your savings rate is ${savingsRate.toFixed(1)}%. Target 30%+ by reducing discretionary spending by ${fmt(expenses*0.1)}/month.`);
+    tips.push(`Apply the 50/30/20 rule: max 50% needs, 30% wants, 20% savings. Currently allocating ${expenseRatio.toFixed(0)}% on expenses.`);
+  } else if (savingsRate > 0) {
+    tips.push(`Critical: only ${savingsRate.toFixed(1)}% saved this month. Review all non-essential expenses immediately.`);
+    tips.push(`Focus on the "pay yourself first" principle — automate a savings transfer of at least ${fmt(income*0.1)} on payday.`);
+  } else {
+    tips.push(`Deficit of ${fmt(Math.abs(balance))} detected. Identify the top 3 expense categories and cut 20% from each.`);
+    tips.push(`Consider increasing income streams: freelance work, selling unused assets, or monetizing a skill.`);
+  }
+
+  if (topCat) {
+    tips.push(`Largest expense category: <strong>${topCat[0]}</strong> at ${fmt(topCat[1])} (${income>0?((topCat[1]/income)*100).toFixed(1):0}% of income). Analyze if this is reducible.`);
+  }
+
+  if (expenses > income) {
+    tips.push("⚠️ Spending exceeds income. Prioritize: (1) cancel subscriptions, (2) negotiate fixed costs, (3) cook at home more.");
+  }
+
+  tips.push(`Projected annual savings at this rate: ${fmt(balance * 12)}. Small monthly adjustments compound significantly over time.`);
+
+  return tips;
+}
+
+// ----------------------------------------------------------------
+// MODULE 2: INVESTMENT TRACKER
+// ----------------------------------------------------------------
+function initInvestments() {
+  buildYearSelect("inv-year", invYear, (y) => {
+    invYear = y;
+    renderInvestments();
+  });
+  buildMonthSelector("inv-month-selector", invMonth, (m) => {
+    invMonth = m;
+    renderInvestments();
+  });
+
+  document.getElementById("inv-date").value = todayStr();
+  document.getElementById("add-inv-btn").addEventListener("click", addInvestment);
+
+  renderInvestments();
+}
+
+function renderInvestments() {
+  const data = DB.getInvestments(invYear, invMonth);
+  renderInvStats(data);
+  renderInvTable(data);
+}
+
+function addInvestment() {
+  const date    = document.getElementById("inv-date").value;
+  const asset   = document.getElementById("inv-asset").value.trim();
+  const type    = document.getElementById("inv-type-cat").value;
+  const capital = parseFloat(document.getElementById("inv-capital").value);
+  const value   = parseFloat(document.getElementById("inv-value").value);
+
+  if (!date || !asset || isNaN(capital) || capital <= 0 || isNaN(value)) {
+    alert("Please fill in all investment fields.");
+    return;
+  }
+
+  const data = DB.getInvestments(invYear, invMonth);
+  const netProfit = value - capital;
+  const roi = ((netProfit / capital) * 100);
+
+  data.push({ id: uid(), date, asset, type, capital, currentValue: value, netProfit, roi });
+  DB.saveInvestments(invYear, invMonth, data);
+
+  document.getElementById("inv-asset").value = "";
+  document.getElementById("inv-capital").value = "";
+  document.getElementById("inv-value").value = "";
+
+  renderInvestments();
+}
+
+function deleteInvestment(id) {
+  const data = DB.getInvestments(invYear, invMonth).filter(i => i.id !== id);
+  DB.saveInvestments(invYear, invMonth, data);
+  renderInvestments();
+}
+
+function renderInvStats(data) {
+  const totalCapital  = data.reduce((s,i) => s + i.capital, 0);
+  const totalValue    = data.reduce((s,i) => s + i.currentValue, 0);
+  const totalProfit   = totalValue - totalCapital;
+  const avgROI        = totalCapital > 0 ? ((totalProfit / totalCapital) * 100) : 0;
+  const roiCls = avgROI >= 0 ? "positive" : "negative";
+
+  document.getElementById("inv-stats").innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Total Capital Deployed</div>
+      <div class="stat-value large">${fmt(totalCapital)}</div>
+      <div class="stat-sub">${data.length} position${data.length!==1?"s":""}</div>
+    </div>
+    <div class="stat-card ${roiCls}">
+      <div class="stat-label">Portfolio Value</div>
+      <div class="stat-value large">${fmt(totalValue)}</div>
+      <div class="stat-sub">Net P&L: ${totalProfit>=0?"+":""}${fmt(totalProfit)}</div>
+    </div>
+    <div class="stat-card ${roiCls}">
+      <div class="stat-label">Weighted ROI</div>
+      <div class="stat-value large ${avgROI>=0?"roi-positive":"roi-negative"}">${avgROI.toFixed(2)}%</div>
+      <div class="stat-sub">Return on Investment</div>
+    </div>
+  `;
+}
+
+function renderInvTable(data) {
+  const wrap = document.getElementById("inv-table-wrap");
+  if (!data.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">📈</div><p>No investments logged yet.</p></div>`;
+    return;
+  }
+
+  const rows = data.map(i => {
+    const roiCls = i.roi >= 0 ? "roi-positive" : "roi-negative";
+    return `
+      <tr>
+        <td>${i.date}</td>
+        <td><strong>${i.asset}</strong></td>
+        <td><span class="badge badge-invest">${i.type}</span></td>
+        <td>${fmt(i.capital)}</td>
+        <td>${fmt(i.currentValue)}</td>
+        <td class="${roiCls}">${i.netProfit>=0?"+":""}${fmt(i.netProfit)}</td>
+        <td class="${roiCls}" style="font-weight:600">${i.roi.toFixed(2)}%</td>
+        <td><button class="btn-delete" onclick="deleteInvestment('${i.id}')">✕</button></td>
+      </tr>
+    `;
+  }).join("");
+
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th><th>Asset</th><th>Type</th>
+          <th>Capital</th><th>Current Value</th>
+          <th>Net Profit</th><th>ROI %</th><th></th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+// ----------------------------------------------------------------
+// MODULE 3: ANNUAL OVERVIEW
+// ----------------------------------------------------------------
+function initAnnual() {
+  buildYearSelect("annual-year", annualYear, (y) => {
+    annualYear = y;
+    renderAnnual();
+  });
+}
+
+function renderAnnual() {
+  const yearData = DB.getYearLedger(annualYear);
+  const invData  = DB.getYearInvestments(annualYear);
+
+  const monthlyIncome   = yearData.map(m => calcLedgerTotals(m).totalIncome);
+  const monthlyExpenses = yearData.map(m => calcLedgerTotals(m).totalExpenses);
+  const monthlySavings  = yearData.map((_, i) => monthlyIncome[i] - monthlyExpenses[i]);
+
+  const totalIncome   = monthlyIncome.reduce((s,v)=>s+v,0);
+  const totalExpenses = monthlyExpenses.reduce((s,v)=>s+v,0);
+  const totalSavings  = monthlySavings.reduce((s,v)=>s+v,0);
+  const avgSavRate    = totalIncome > 0 ? (totalSavings/totalIncome)*100 : 0;
+
+  const totalInvested = invData.flat().reduce((s,i)=>s+i.capital,0);
+  const totalInvValue = invData.flat().reduce((s,i)=>s+i.currentValue,0);
+  const totalInvROI   = totalInvested > 0 ? ((totalInvValue-totalInvested)/totalInvested)*100 : 0;
+
+  // Stat Cards
+  const savCls = avgSavRate >= 20 ? "positive" : avgSavRate >= 0 ? "neutral" : "negative";
+  document.getElementById("annual-stats").innerHTML = `
+    <div class="stat-card positive">
+      <div class="stat-label">Annual Income</div>
+      <div class="stat-value large">${fmt(totalIncome)}</div>
+      <div class="stat-sub">Avg ${fmt(totalIncome/12)}/month</div>
+    </div>
+    <div class="stat-card negative">
+      <div class="stat-label">Annual Expenses</div>
+      <div class="stat-value large">${fmt(totalExpenses)}</div>
+      <div class="stat-sub">Avg ${fmt(totalExpenses/12)}/month</div>
+    </div>
+    <div class="stat-card ${savCls}">
+      <div class="stat-label">Total Saved</div>
+      <div class="stat-value large">${fmt(totalSavings)}</div>
+      <div class="stat-sub">${avgSavRate.toFixed(1)}% savings rate</div>
+    </div>
+  `;
+
+  // Charts
+  renderChartIncExp(monthlyIncome, monthlyExpenses);
+  renderChartSavings(monthlySavings);
+  renderChartCategories(yearData);
+
+  // Consulting
+  renderConsulting(totalIncome, totalExpenses, totalSavings, avgSavRate, totalInvested, totalInvValue, totalInvROI, monthlyIncome, monthlyExpenses);
+}
+
+// CHART 1: Income vs Expenses
+function renderChartIncExp(income, expenses) {
+  const ctx = document.getElementById("chart-inc-exp").getContext("2d");
+  if (chartIncExp) chartIncExp.destroy();
+  chartIncExp = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: MONTHS,
+      datasets: [
+        {
+          label: "Income",
+          data: income,
+          backgroundColor: "rgba(107,174,142,.7)",
+          borderColor: "rgba(107,174,142,1)",
+          borderWidth: 1,
+          borderRadius: 4,
+        },
+        {
+          label: "Expenses",
+          data: expenses,
+          backgroundColor: "rgba(192,96,96,.65)",
+          borderColor: "rgba(192,96,96,1)",
+          borderWidth: 1,
+          borderRadius: 4,
+        }
+      ]
+    },
+    options: chartOptions("COP $")
+  });
+}
+
+// CHART 2: Net Savings
+function renderChartSavings(savings) {
+  const ctx = document.getElementById("chart-savings").getContext("2d");
+  if (chartSavings) chartSavings.destroy();
+  const colors = savings.map(v => v >= 0 ? "rgba(107,174,142,.7)" : "rgba(192,96,96,.65)");
+  chartSavings = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: MONTHS,
+      datasets: [{
+        label: "Net Savings",
+        data: savings,
+        backgroundColor: colors,
+        borderColor: colors.map(c => c.replace(".7","1").replace(".65","1")),
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: chartOptions("COP $")
+  });
+}
+
+// CHART 3: Expense categories donut
+function renderChartCategories(yearData) {
+  const ctx = document.getElementById("chart-categories").getContext("2d");
+  if (chartCats) chartCats.destroy();
+
+  const cats = {};
+  yearData.forEach(m => {
+    m.transactions.filter(t=>t.type==="expense").forEach(t => {
+      cats[t.cat] = (cats[t.cat]||0) + t.amount;
+    });
+  });
+
+  const sorted = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  if (!sorted.length) {
+    ctx.canvas.parentElement.innerHTML = `<div class="card-title">Expense Breakdown by Category</div><div class="empty-state"><div class="icon">🗂</div><p>No expense data yet.</p></div>`;
+    return;
+  }
+
+  const palette = ["#7BAFD4","#6BAE8E","#D4A843","#C06060","#A0BDD8","#8CC4A8","#E0C080","#D08080","#5090B0","#50987E"];
+
+  chartCats = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: sorted.map(([k])=>k),
+      datasets: [{
+        data: sorted.map(([,v])=>v),
+        backgroundColor: palette.slice(0, sorted.length),
+        borderWidth: 2,
+        borderColor: "#FAFAF7"
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "right", labels: { font: { family: "DM Sans", size: 12 }, color: "#6B6560", padding: 12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(ctx.raw)}`
+          }
+        }
+      }
+    }
+  });
+}
+
+function chartOptions(unit) {
+  return {
+    responsive: true,
+    plugins: {
+      legend: { labels: { font: { family: "DM Sans", size: 12 }, color: "#6B6560" } },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(ctx.raw)}`
+        }
+      }
+    },
+    scales: {
+      x: { grid: { color: "rgba(0,0,0,.04)" }, ticks: { font: { family: "DM Sans", size: 11 }, color: "#A09890" } },
+      y: { grid: { color: "rgba(0,0,0,.04)" }, ticks: {
+        font: { family: "DM Sans", size: 11 }, color: "#A09890",
+        callback: v => new Intl.NumberFormat("es-CO", { notation: "compact", maximumFractionDigits: 1 }).format(v)
+      }}
+    }
+  };
+}
+
+// CONSULTING SECTION
+function renderConsulting(income, expenses, savings, savRate, invCapital, invValue, invROI, mIncome, mExpenses) {
+  const el = document.getElementById("consulting-box");
+  const annualGap  = income - expenses;
+  const projIncome = income * 1.05;
+  const projSav    = projIncome * (savRate/100);
+  const bestMonth  = MONTHS[mIncome.indexOf(Math.max(...mIncome))];
+  const worstMonth = MONTHS[mExpenses.indexOf(Math.max(...mExpenses))];
+  const months     = mIncome.filter(v=>v>0).length || 1;
+
+  const insights = [
+    { label: "Annual Savings Gap",  val: fmt(annualGap),    desc: annualGap >= 0 ? "You generated a surplus this year — well done." : "Expenses exceeded income. Structural changes needed." },
+    { label: "Avg Monthly Savings", val: fmt(savings/months), desc: `Based on ${months} active month(s) of data.` },
+    { label: "Projected 2026 Income (5% growth)", val: fmt(projIncome), desc: "Achievable with a moderate income growth strategy." },
+    { label: "Investment Portfolio ROI", val: invCapital > 0 ? `${invROI.toFixed(2)}%` : "No data", desc: invCapital > 0 ? `Unrealized P&L: ${fmt(invValue - invCapital)}` : "Log investments to see ROI." },
+    { label: "Peak Income Month", val: bestMonth, desc: `Highest income recorded in ${bestMonth}.` },
+    { label: "Highest Spend Month", val: worstMonth, desc: `Review ${worstMonth} expenses for reduction opportunities.` },
+  ];
+
+  const advice = buildAnnualAdvice(income, expenses, savings, savRate, invCapital, invROI);
+
+  el.innerHTML = `
+    <h2>Strategic Financial Report</h2>
+    <div class="sub">Annual Analytical Consulting · ${annualYear}</div>
+    <div class="consulting-insights">
+      ${insights.map(i => `
+        <div class="insight-item">
+          <div class="insight-label">${i.label}</div>
+          <div class="insight-val">${i.val}</div>
+          <div class="insight-desc">${i.desc}</div>
+        </div>
+      `).join("")}
+    </div>
+    <div class="annual-advice">
+      ${advice.map(a => `<div class="advice-item">${a}</div>`).join("")}
+    </div>
+  `;
+}
+
+function buildAnnualAdvice(income, expenses, savings, savRate, invCapital, invROI) {
+  const advice = [];
+
+  if (savRate >= 30) {
+    advice.push(`🏆 <strong>High Performer:</strong> ${savRate.toFixed(1)}% savings rate places you in the top financial tier. Maintain this discipline and explore tax-advantaged investment vehicles.`);
+  } else if (savRate >= 15) {
+    advice.push(`📈 <strong>On Track:</strong> Your ${savRate.toFixed(1)}% savings rate is respectable. Increasing to 25% would cut your financial independence timeline significantly.`);
+  } else if (savRate > 0) {
+    advice.push(`⚡ <strong>Improvement Needed:</strong> ${savRate.toFixed(1)}% savings rate is below the 20% benchmark. A structured budget (50/30/20) could increase this within 3 months.`);
+  } else {
+    advice.push(`🚨 <strong>Critical:</strong> Negative or zero savings rate. Immediate budget restructuring required. Focus on cutting the top 2 expense categories by 25%.`);
+  }
+
+  if (income > 0) {
+    const emergencyFundMonths = savings / (expenses / 12 || 1);
+    advice.push(`🛡️ <strong>Emergency Fund Status:</strong> At your current savings pace, you can cover approximately ${emergencyFundMonths.toFixed(1)} months of expenses. Target: 6 months minimum (${fmt(expenses/12*6)}).`);
+  }
+
+  if (invCapital > 0) {
+    const annualInvPct = (invCapital / (income||1)) * 100;
+    advice.push(`📊 <strong>Investment Intensity:</strong> You deployed ${annualInvPct.toFixed(1)}% of annual income (${fmt(invCapital)}) into investments, achieving ${invROI.toFixed(2)}% ROI. ${invROI > 8 ? "Outperforming typical market benchmarks." : "Consider diversifying to improve returns."}`);
+  } else {
+    advice.push(`💡 <strong>Investing Opportunity:</strong> No investments recorded. Even deploying 10% of income (${fmt(income*0.1)}) annually into low-cost index funds compounds significantly over 10+ years.`);
+  }
+
+  advice.push(`📅 <strong>Annual Strategy:</strong> Review and adjust your budget quarterly. Track your net worth monthly. Set a specific annual savings target: ${fmt(savings * 1.2)} (20% above current pace) for ${annualYear + 1}.`);
+
+  return advice;
+}
+
+// ----------------------------------------------------------------
+// APP INIT
+// ----------------------------------------------------------------
+function initApp() {
+  initNav();
+  initLedger();
+  initInvestments();
+  initAnnual();
+}
+
+// ----------------------------------------------------------------
+// BOOTSTRAP
+// ----------------------------------------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  initAuth();
+});
+</script>
+</body>
+</html>

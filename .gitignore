@@ -1,0 +1,48 @@
+# ================================================
+# AURELIUS — Personal Finance Tracker
+# .gitignore — NEVER commit these files to Git
+# ================================================
+
+# Auth & Environment configuration
+auth.config.js
+auth.config.ts
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+*.env
+
+# Firebase / Supabase secrets
+firebase.config.js
+firebase.config.ts
+supabase.config.js
+serviceAccount.json
+*-credentials.json
+*-adminsdk*.json
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+.next/
+.nuxt/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Netlify / Vercel
+.netlify/
+.vercel/
