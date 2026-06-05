@@ -8,7 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet" />
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     /* ═══════════════════════════════════════════════════════════════
@@ -250,6 +254,9 @@
     /* HEADER PATTERNS */
     .section-header {
       margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
     }
     .section-header h2 {
       font-family: var(--font-serif);
@@ -260,6 +267,28 @@
     .section-header p {
       font-size: 0.9rem;
       color: var(--text-muted);
+    }
+    .export-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-export {
+      background: var(--ivory-card);
+      border: 1px solid var(--blue-light);
+      color: var(--blue-deep);
+      padding: 8px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-export:hover {
+      background: var(--blue-muted);
+      color: var(--text-main);
     }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -407,7 +436,7 @@
       background: var(--ivory-deep);
       font-weight: 600;
       text-transform: uppercase;
-      font-size: 0.7------rem;
+      font-size: 0.75rem;
       letter-spacing: 0.5px;
       color: var(--text-muted);
       padding: 12px 20px;
@@ -538,8 +567,14 @@
       
       <section id="section-ledger" class="app-section active">
         <div class="section-header">
-          <h2>Monthly Ledger</h2>
-          <p>Track income, expenses and your financial health for each month.</p>
+          <div>
+            <h2>Monthly Ledger</h2>
+            <p>Track income, expenses and your financial health for each month.</p>
+          </div>
+          <div class="export-buttons">
+            <button class="btn-export" onclick="exportToExcel()">📊 Export Excel</button>
+            <button class="btn-export" onclick="exportToPDF()">📕 Export PDF</button>
+          </div>
         </div>
 
         <div class="sync-card">
@@ -606,13 +641,14 @@
                 <select id="tx-cat" required>
                   <option value="Income">Income</option>
                   <option value="Food">Food</option>
-                  <option value="Housing">Housing</option>
+                  <option value="Housing">Housing (Vivienda)</option>
+                  <option value="Rent">Rent (Arriendo)</option>
                   <option value="Transport">Transport</option>
                   <option value="Health">Health</option>
                   <option value="Clothing">Clothing</option>
                   <option value="Education">Education</option>
-                  <option value="Entertainment">Entertainment</option>
                   <option value="Technology">Technology</option>
+                  <option value="Entertainment">Entertainment</option>
                   <option value="Savings">Savings</option>
                   <option value="Other">Other</option>
                 </select>
@@ -655,8 +691,10 @@
 
       <section id="section-investments" class="app-section">
         <div class="section-header">
-          <h2>Investment Tracking</h2>
-          <p>Monitor your active capital deployments and calculated returns over time.</p>
+          <div>
+            <h2>Investment Tracking</h2>
+            <p>Monitor your active capital deployments and calculated returns over time.</p>
+          </div>
         </div>
 
         <div class="timeline-selector">
@@ -740,8 +778,10 @@
 
       <section id="section-annual" class="app-section">
         <div class="section-header">
-          <h2>Annual Analytics Dashboard</h2>
-          <p>Aggregated multi-month visualizations and strategic consulting reports.</p>
+          <div>
+            <h2>Annual Analytics Dashboard</h2>
+            <p>Aggregated multi-month visualizations and strategic consulting reports.</p>
+          </div>
         </div>
 
         <div class="timeline-selector" style="max-width:200px;">
@@ -822,7 +862,7 @@
       return d.ledger[k];
     },
     saveLedger(y, m, data) {
-      const d = this.load();
+      const d = d = this.load();
       d.ledger[`${y}-${m}`] = data;
       this.save(d);
     },
@@ -1228,6 +1268,141 @@
     document.getElementById("metric-inv-roi-pct").textContent = `${netPct >= 0 ? '+' : ''}${netPct.toFixed(2)}% Net Yield`;
   }
 
+  // ---- MÓDULO EXPORTACIÓN (EXCEL & PDF) ----
+  function exportToExcel() {
+    const lData = DB.getLedger(currentYear, currentMonth);
+    if (!lData.transactions || lData.transactions.length === 0) {
+      showToast("No data entries to compile into Excel for this timeline.", "error");
+      return;
+    }
+
+    // Estructurar filas para el Excel
+    const rows = [
+      ["FINANCIAL LEDGER REPORT"],
+      ["Timeline:", `${MONTHS_FULL[currentMonth]} ${currentYear}`],
+      ["Base Income Allocation:", lData.income],
+      [],
+      ["Date", "Description", "Category", "Type", "Amount (COP)", "Data Node Source"]
+    ];
+
+    lData.transactions.forEach(t => {
+      rows.push([t.date, t.desc, t.cat, t.type.toUpperCase(), t.amount, t.src]);
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, "Monthly Ledger");
+
+    const filename = `Michell_Ledger_${currentYear}_${MONTHS[currentMonth]}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    showToast("Excel spreadsheet compilation completed successfully.", "success");
+  }
+
+  function exportToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const lData = DB.getLedger(currentYear, currentMonth);
+
+    // Calcular balances consolidados
+    let totalIn = lData.income;
+    let totalOut = 0;
+    lData.transactions.forEach(t => {
+      if(t.type === "income" && t.cat !== "Income") totalIn += t.amount;
+      if(t.type === "expense") totalOut += t.amount;
+    });
+    const net = totalIn - totalOut;
+
+    // ESTILO PREMIUM MARFIL / AZUL BEBÉ EN EL PDF
+    doc.setFillColor(247, 245, 240); // --ivory
+    doc.rect(0, 0, 210, 297, "F");
+
+    // Header de Consultoría Financiera
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(44, 53, 57); // --text-main
+    doc.text("MICHELL", 20, 25);
+    
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(108, 122, 129); // --text-muted
+    doc.text("PERSONAL FINANCE STRATEGIC LEDGER REPORT", 20, 31);
+    doc.text(`Timeline Frame: ${MONTHS_FULL[currentMonth].toUpperCase()} ${currentYear}`, 20, 36);
+
+    // Línea divisoria elegante
+    doc.setDrawColor(123, 175, 212); // --blue
+    doc.setLineWidth(0.5);
+    doc.line(20, 42, 190, 42);
+
+    // Cuadrícula de Métricas Clave (Resumen Ejecutivo)
+    doc.setFillColor(250, 250, 247); // --ivory-card
+    doc.setDrawColor(238, 235, 227); // --ivory-deep
+    doc.rect(20, 50, 52, 24, "FD");
+    doc.rect(79, 50, 52, 24, "FD");
+    doc.rect(138, 50, 52, 24, "FD");
+
+    doc.setFontSize(8);
+    doc.setFont("Helvetica", "bold");
+    doc.setTextColor(108, 122, 129);
+    doc.text("TOTAL INFLOW", 25, 56);
+    doc.text("TOTAL OUTFLOW", 84, 56);
+    doc.text("NET SURPLUS / BALANCE", 143, 56);
+
+    doc.setFontSize(12);
+    doc.setTextColor(44, 53, 57);
+    doc.text(fmt(totalIn), 25, 66);
+    doc.text(fmt(totalOut), 84, 66);
+    
+    if(net >= 0) doc.setTextColor(79, 155, 115); else doc.setTextColor(197, 90, 90);
+    doc.text(fmt(net), 143, 66);
+
+    // Tabla de transacciones usando AutoTable
+    doc.setFontSize(12);
+    doc.setFont("Helvetica", "bold");
+    doc.setTextColor(44, 53, 57);
+    doc.text("Verified Ledger Entries", 20, 88);
+
+    const columns = ["Date", "Description", "Category", "Type", "Amount"];
+    const tableData = lData.transactions.map(t => [
+      t.date,
+      t.desc,
+      t.cat,
+      t.type.toUpperCase(),
+      fmt(t.amount)
+    ]);
+
+    doc.autoTable({
+      head: [columns],
+      body: tableData,
+      startY: 94,
+      margin: { left: 20, right: 20 },
+      theme: "plain",
+      headStyles: {
+        fillColor: [238, 235, 227], // --ivory-deep
+        textColor: [108, 122, 129], // --text-muted
+        fontStyle: "bold",
+        fontSize: 8
+      },
+      bodyStyles: {
+        textColor: [44, 53, 57],
+        fontSize: 9
+      },
+      columnStyles: {
+        4: { halign: "right" }
+      },
+      didParseCell: function(data) {
+        if(data.section === "body" && data.column.index === 3) {
+          if(data.cell.raw === "INCOME") data.cell.styles.textColor = [79, 155, 115];
+          if(data.cell.raw === "EXPENSE") data.cell.styles.textColor = [197, 90, 90];
+        }
+      }
+    });
+
+    const filename = `Michell_Report_${currentYear}_${MONTHS[currentMonth]}.pdf`;
+    doc.save(filename);
+    showToast("PDF document vector rendering completed.", "success");
+  }
+
+  // ---- ENGINE GRÁFICO (ANNUAL DASHBOARD CONTROLLER) ----
   function addInvestment(e) {
     e.preventDefault();
     const date = document.getElementById("inv-date").value;
@@ -1260,7 +1435,6 @@
     renderInvestments();
   }
 
-  // ---- ENGINE GRÁFICO (ANNUAL DASHBOARD CONTROLLER) ----
   function renderAnnualCharts() {
     const targetYear = parseInt(document.getElementById("annual-year-select").value) || currentYear;
     const yearLedger = DB.getYearLedger(targetYear);
