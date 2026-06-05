@@ -29,8 +29,8 @@
       --shadow-subtle: 0 4px 20px rgba(44, 53, 57, 0.04);
       --shadow-md:     0 10px 30px rgba(44, 53, 57, 0.08);
 
-      --font-serif:   'Cormorant Garamond', serif;
-      --font-sans:    'DM Sans', sans-serif;
+      --font-serif:    'Cormorant Garamond', serif;
+      --font-sans:     'DM Sans', sans-serif;
     }
 
     * {
@@ -407,7 +407,7 @@
       background: var(--ivory-deep);
       font-weight: 600;
       text-transform: uppercase;
-      font-size: 0.7rem;
+      font-size: 0.7------rem;
       letter-spacing: 0.5px;
       color: var(--text-muted);
       padding: 12px 20px;
@@ -609,6 +609,8 @@
                   <option value="Housing">Housing</option>
                   <option value="Transport">Transport</option>
                   <option value="Health">Health</option>
+                  <option value="Clothing">Clothing</option>
+                  <option value="Education">Education</option>
                   <option value="Entertainment">Entertainment</option>
                   <option value="Savings">Savings</option>
                   <option value="Other">Other</option>
@@ -772,6 +774,14 @@
   const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const MONTHS_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
+  let currentYear = new Date().getFullYear();
+  let currentMonth = new Date().getMonth();
+  let activeTab = "ledger";
+  
+  let cashflowChart = null;
+  let categoryChart = null;
+  let savingsChart = null;
+
   const fmt = (n) => {
     const num = parseFloat(n) || 0;
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(num);
@@ -836,7 +846,7 @@
     }
   };
 
-  // ---- CONTROL DE AUTENTICACIÓN (CORREGIDO A LOCALSTORAGE) ----
+  // ---- CONTROL DE AUTENTICACIÓN ----
   const LS_SESSION_KEY = "michell_user_session";
 
   function initAuth() {
@@ -918,8 +928,13 @@
     const rows = text.split(/\r?\n/);
     if(rows.length < 2) return;
 
-    const parsedTxs = [];
-    const parsedInvs = [];
+    const data = DB.load();
+    Object.keys(data.ledger).forEach(k => {
+      data.ledger[k].transactions = data.ledger[k].transactions.filter(t => t.src !== "sheets");
+    });
+    Object.keys(data.investments).forEach(k => {
+      data.investments[k] = data.investments[k].filter(i => i.src !== "sheets");
+    });
 
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i].trim();
@@ -928,127 +943,185 @@
       const cols = row.split(",").map(c => c.replace(/^"|"$/g, "").trim());
 
       if (cols.length === 5) {
-        // Transactions Map
         const [date, desc, cat, type, amount] = cols;
         if (!date || isNaN(parseFloat(amount))) continue;
-        parsedTxs.push({ id: `sheets-${i}`, date, desc, cat, type: type.toLowerCase(), amount: parseFloat(amount), src: "sheets" });
+        
+        const dObj = new Date(date);
+        if (isNaN(dObj.getTime())) continue;
+        const y = dObj.getFullYear();
+        const m = dObj.getMonth();
+        const k = `${y}-${m}`;
+
+        if (!data.ledger[k]) data.ledger[k] = { income: 0, transactions: [] };
+        
+        if (type.toLowerCase() === "income" && cat === "Income" && data.ledger[k].income === 0) {
+          data.ledger[k].income = parseFloat(amount);
+        }
+
+        data.ledger[k].transactions.push({
+          id: `sheets-${i}-${uid()}`,
+          date,
+          desc,
+          cat,
+          type: type.toLowerCase(),
+          amount: parseFloat(amount),
+          src: "sheets"
+        });
       } else if (cols.length === 6) {
-        // Investments Map
         const [date, asset, type, capital, current, profit] = cols;
         if (!date || isNaN(parseFloat(capital))) continue;
-        parsedInvs.push({ id: `sheets-inv-${i}`, date, asset, type, capital: parseFloat(capital), currentValue: parseFloat(current), src: "sheets" });
+
+        const dObj = new Date(date);
+        if (isNaN(dObj.getTime())) continue;
+        const y = dObj.getFullYear();
+        const m = dObj.getMonth();
+        const k = `${y}-${m}`;
+
+        if (!data.investments[k]) data.investments[k] = [];
+
+        data.investments[k].push({
+          id: `sheets-inv-${i}-${uid()}`,
+          date,
+          asset,
+          type,
+          capital: parseFloat(capital),
+          currentVal: parseFloat(current),
+          src: "sheets"
+        });
       }
     }
-
-    const currentDB = DB.load();
-
-    if (parsedTxs.length > 0) {
-      currentDB.ledger = {};
-      parsedTxs.forEach(tx => {
-        const dObj = new Date(tx.date + "T00:00:00");
-        if(isNaN(dObj.getTime())) return;
-        const y = dObj.getFullYear();
-        const m = dObj.getMonth();
-        const k = `${y}-${m}`;
-
-        if (!currentDB.ledger[k]) currentDB.ledger[k] = { income: 0, transactions: [] };
-        
-        if (tx.cat.toLowerCase() === "income" && tx.desc.toLowerCase().includes("base")) {
-          currentDB.ledger[k].income = tx.amount;
-        } else {
-          currentDB.ledger[k].transactions.push(tx);
-        }
-      });
-    }
-
-    if (parsedInvs.length > 0) {
-      currentDB.investments = {};
-      parsedInvs.forEach(inv => {
-        const dObj = new Date(inv.date + "T00:00:00");
-        if(isNaN(dObj.getTime())) return;
-        const y = dObj.getFullYear();
-        const m = dObj.getMonth();
-        const k = `${y}-${m}`;
-
-        if (!currentDB.investments[k]) currentDB.investments[k] = [];
-        currentDB.investments[k].push(inv);
-      });
-    }
-
-    DB.save(currentDB);
-    renderLedger();
-    renderInvestments();
-    renderAnnual();
+    DB.save(data);
+    renderActiveSection();
   }
 
-  // NAVIGATION CONTROL
-  function switchTab(tabId) {
-    document.querySelectorAll(".menu button").forEach(b => b.classList.remove("active"));
+  // ---- APP NAVIGATION & VIEW CONTROL ----
+  function initApp() {
+    buildTimelineSelectors();
+    renderActiveSection();
+  }
+
+  function switchTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll("nav .menu button").forEach(b => b.classList.remove("active"));
+    document.getElementById(`nav-${tab}`).classList.add("active");
+    
     document.querySelectorAll(".app-section").forEach(s => s.classList.remove("active"));
-    
-    document.getElementById(`nav-${tabId}`).classList.add("active");
-    document.getElementById(`section-${tabId}`).classList.add("active");
+    document.getElementById(`section-${tab}`).classList.add("active");
 
-    if (tabId === "ledger") renderLedger();
-    if (tabId === "investments") renderInvestments();
-    if (tabId === "annual") renderAnnual();
+    renderActiveSection();
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // TIMELINES CONFIG
-  // ═══════════════════════════════════════════════════════════════
-  let ledgerYear = 2026, ledgerMonth = 5;
-  let invYear = 2026, invMonth = 5;
-  let annualYear = 2026;
+  function buildTimelineSelectors() {
+    const yLedger = document.getElementById("ledger-year");
+    const yInv = document.getElementById("inv-year");
+    const ySelect = document.getElementById("annual-year-select");
 
-  function initTimelineSelectors() {
-    const years = [2028, 2027, 2026, 2025, 2024, 2023, 2022, 2021, 2020];
+    const years = [currentYear - 1, currentYear, currentYear + 1];
     
-    const ly = document.getElementById("ledger-year");
-    const iy = document.getElementById("inv-year");
-    const ay = document.getElementById("annual-year-select");
-
-    ly.innerHTML = years.map(y => `<option value="${y}" ${y===ledgerYear?'selected':''}>${y}</option>`).join("");
-    iy.innerHTML = years.map(y => `<option value="${y}" ${y===invYear?'selected':''}>${y}</option>`).join("");
-    ay.innerHTML = years.map(y => `<option value="${y}" ${y===annualYear?'selected':''}>${y}</option>`).join("");
+    [yLedger, yInv, ySelect].forEach(sel => {
+      sel.innerHTML = "";
+      years.forEach(y => {
+        const op = document.createElement("option");
+        op.value = y;
+        op.textContent = `Year ${y}`;
+        if(y === currentYear) op.selected = true;
+        sel.appendChild(op);
+      });
+    });
 
     renderMonthGrids();
   }
 
   function renderMonthGrids() {
-    const lm = document.getElementById("ledger-months");
-    const im = document.getElementById("inv-months");
+    const mLedger = document.getElementById("ledger-months");
+    const mInv = document.getElementById("inv-months");
 
-    lm.innerHTML = MONTHS.map((m, i) => `<button id="l-m-${i}" class="${i===ledgerMonth?'active':''}" onclick="setLedgerMonth(${i})">${m}</button>`).join("");
-    im.innerHTML = MONTHS.map((m, i) => `<button id="i-m-${i}" class="${i===invMonth?'active':''}" onclick="setInvMonth(${i})">${m}</button>`).join("");
+    [mLedger, mInv].forEach((grid, idx) => {
+      grid.innerHTML = "";
+      MONTHS.forEach((m, i) => {
+        const btn = document.createElement("button");
+        btn.textContent = m;
+        if(i === currentMonth) btn.className = "active";
+        btn.onclick = () => {
+          currentMonth = i;
+          document.querySelectorAll(`#${grid.id} button`).forEach(b => b.classList.remove("active"));
+          btn.className = "active";
+          renderActiveSection();
+        };
+        grid.appendChild(btn);
+      });
+    });
   }
 
-  function setLedgerMonth(m) { ledgerMonth = m; renderMonthGrids(); renderLedger(); }
-  function setInvMonth(m) { invMonth = m; renderMonthGrids(); renderInvestments(); }
+  function changeLedgerTimeline() {
+    currentYear = parseInt(document.getElementById("ledger-year").value);
+    renderActiveSection();
+  }
 
-  function changeLedgerTimeline() { ledgerYear = parseInt(document.getElementById("ledger-year").value); renderLedger(); }
-  function changeInvTimeline() { invYear = parseInt(document.getElementById("inv-year").value); renderInvestments(); }
-  function changeAnnualTimeline() { annualYear = parseInt(document.getElementById("annual-year-select").value); renderAnnual(); }
+  function changeInvTimeline() {
+    currentYear = parseInt(document.getElementById("inv-year").value);
+    renderActiveSection();
+  }
 
-  // ═══════════════════════════════════════════════════════════════
-  // MODULE 1: MONTHLY FINANCIAL LEDGER
-  // ═══════════════════════════════════════════════════════════════
-  function initLedger() {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById("tx-date").value = today;
-    renderLedger();
+  function changeAnnualTimeline() {
+    renderAnnualCharts();
+  }
+
+  function renderActiveSection() {
+    if (activeTab === "ledger") renderLedger();
+    if (activeTab === "investments") renderInvestments();
+    if (activeTab === "annual") renderAnnualCharts();
+  }
+
+  // ---- LEDGER ENGINE ----
+  function renderLedger() {
+    const lData = DB.getLedger(currentYear, currentMonth);
+    document.getElementById("form-base-income").value = lData.income || "";
+    
+    let totalIn = lData.income;
+    let totalOut = 0;
+
+    const tbody = document.getElementById("ledger-table-body");
+    tbody.innerHTML = "";
+
+    lData.transactions.forEach(t => {
+      if(t.type === "income" && t.cat !== "Income") totalIn += t.amount;
+      if(t.type === "expense") totalOut += t.amount;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${t.date}</td>
+        <td>${t.desc}${t.src === 'sheets' ? '<span class="badge-src">Sync</span>' : ''}</td>
+        <td>${t.cat}</td>
+        <td class="${t.type === 'income' ? 'amount-in' : 'amount-out'}">${t.type.toUpperCase()}</td>
+        <td class="${t.type === 'income' ? 'amount-in' : 'amount-out'}">${fmt(t.amount)}</td>
+        <td>
+          <button style="background:none;border:none;color:#D96B6B;cursor:pointer;font-weight:600" onclick="deleteTransaction('${t.id}')">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const net = totalIn - totalOut;
+    document.getElementById("metric-income").textContent = fmt(totalIn);
+    document.getElementById("metric-expenses").textContent = fmt(totalOut);
+    document.getElementById("metric-expenses-sub").textContent = `${lData.transactions.filter(t=>t.type==='expense').length} expense entries`;
+    
+    const netEl = document.getElementById("metric-net");
+    netEl.textContent = fmt(net);
+    netEl.className = net >= 0 ? "val amount-in" : "val amount-out";
+    document.getElementById("metric-net-sub").textContent = net >= 0 ? "Surplus this month" : "Deficit this month";
+
+    renderHealthIndicator(totalIn, totalOut);
   }
 
   function saveBaseIncome(e) {
     e.preventDefault();
-    const val = parseFloat(document.getElementById("form-base-income").value);
-    if(isNaN(val) || val < 0) return;
-
-    const data = DB.getLedger(ledgerYear, ledgerMonth);
-    data.income = val;
-    DB.saveLedger(ledgerYear, ledgerMonth, data);
-    
-    showToast("Allocation allocation processed successfully.", "success");
+    const val = parseFloat(document.getElementById("form-base-income").value) || 0;
+    const lData = DB.getLedger(currentYear, currentMonth);
+    lData.income = val;
+    DB.saveLedger(currentYear, currentMonth, lData);
+    showToast("Base allocations configuration modified.", "success");
     renderLedger();
   }
 
@@ -1058,113 +1131,100 @@
     const desc = document.getElementById("tx-desc").value.trim();
     const cat = document.getElementById("tx-cat").value;
     const type = document.getElementById("tx-type").value;
-    const amount = parseFloat(document.getElementById("tx-amount").value);
+    const amount = parseFloat(document.getElementById("tx-amount").value) || 0;
 
-    if(!date || !desc || isNaN(amount) || amount <= 0) return;
-
-    const dObj = new Date(date + "T00:00:00");
+    const tObj = { id: uid(), date, desc, cat, type, amount, src: "local" };
+    const dObj = new Date(date);
     const y = dObj.getFullYear();
     const m = dObj.getMonth();
 
-    const data = DB.getLedger(y, m);
-    data.transactions.push({ id: 'tx-'+uid(), date, desc, cat, type, amount });
-    DB.saveLedger(y, m, data);
+    const lData = DB.getLedger(y, m);
+    lData.transactions.push(tObj);
+    DB.saveLedger(y, m, lData);
 
-    showToast("Entry tracked successfully.", "success");
+    showToast("Transaction logged into local node ledger.", "success");
     document.getElementById("tx-desc").value = "";
     document.getElementById("tx-amount").value = "";
-    
-    if (y === ledgerYear && m === ledgerMonth) renderLedger();
-  }
-
-  function deleteTransaction(id) {
-    const data = DB.getLedger(ledgerYear, ledgerMonth);
-    data.transactions = data.transactions.filter(t => t.id !== id);
-    DB.saveLedger(ledgerYear, ledgerMonth, data);
-    showToast("Transaction record removed.", "info");
     renderLedger();
   }
 
-  function renderLedger() {
-    const data = DB.getLedger(ledgerYear, ledgerMonth);
-    document.getElementById("form-base-income").value = data.income || "";
-
-    let totalIn = 0;
-    let totalOut = 0;
-
-    const tbody = document.getElementById("ledger-table-body");
-    tbody.innerHTML = "";
-
-    if (data.transactions.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px 0;">No active ledger logs recorded for ${MONTHS_FULL[ledgerMonth]} ${ledgerYear}.</td></tr>`;
-    } else {
-      // Sort array dates
-      data.transactions.sort((a,b) => new Date(a.date) - new Date(b.date));
-      data.transactions.forEach(t => {
-        if(t.type === 'income') totalIn += t.amount;
-        else totalOut += t.amount;
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td style="font-variant-numeric: tabular-nums;">${t.date}</td>
-          <td>${t.desc}${t.src === 'sheets' ? '<span class="badge-src">Sheets</span>' : ''}</td>
-          <td><span style="font-size:0.75rem; background:var(--ivory-deep); padding:3px 8px; border-radius:4px; font-weight:500;">${t.cat}</span></td>
-          <td style="text-transform:uppercase; font-size:0.7rem; font-weight:600;">${t.type}</td>
-          <td class="${t.type==='income'?'amount-in':'amount-out'}">${t.type==='income'?'+':'-'} ${fmt(t.amount)}</td>
-          <td><button style="background:none;border:none;color:#D96B6B;cursor:pointer;font-weight:600;" onclick="deleteTransaction('${t.id}')">Delete</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    const netAllocation = (data.income || 0) + totalIn;
-    const balance = netAllocation - totalOut;
-
-    document.getElementById("metric-income").textContent = fmt(netAllocation);
-    document.getElementById("metric-income-sub").textContent = `Base: ${fmt(data.income)} · Direct: ${fmt(totalIn)}`;
-    document.getElementById("metric-expenses").textContent = fmt(totalOut);
-    document.getElementById("metric-expenses-sub").textContent = `${data.transactions.filter(t=>t.type==='expense').length} expense logs optimized`;
-    document.getElementById("metric-net").textContent = fmt(balance);
-    document.getElementById("metric-net-sub").textContent = balance >= 0 ? "Surplus capital optimization" : "Deficit structural warning";
-
-    // TRAFFIC LIGHT HEALTH ARCHITECTURE
-    const light = document.getElementById("ledger-health-light");
-    const htext = document.getElementById("ledger-health-text");
-    
-    const pct = netAllocation > 0 ? (totalOut / netAllocation) * 100 : (totalOut > 0 ? 100 : 0);
-
-    light.className = "health-light";
-    if (pct <= 50) {
-      light.classList.add("green");
-      htext.innerHTML = `<h4>Excellent Status — Savings Velocity High (${pct.toFixed(1)}%)</h4><p>Operational expenses remain below 50% threshold allocation. Excellent structural retention capabilities.</p>`;
-    } else if (pct <= 80) {
-      light.classList.add("yellow");
-      htext.innerHTML = `<h4>Controlled Status — Mitigation Alert (${pct.toFixed(1)}%)</h4><p>Efficiency bandwidth narrowing. Review unessential categorical flows to secure macro retention metrics.</p>`;
-    } else {
-      light.classList.add("red");
-      htext.innerHTML = `<h4>Structural Deficit — Capital Destruction Warning (${pct.toFixed(1)}%)</h4><p>Burn rate exceeding safe fiscal tolerances. Immediate adjustments recommended to preserve capital runway.</p>`;
-    }
-
-    // TAILORED ADVICE ENGINE
-    const adviceArea = document.getElementById("ledger-advice-area");
-    let adviceHtml = "";
-    if (pct > 80) {
-      adviceHtml = `<div class="advice-box"><h4>Strategic Action Framework</h4><p>Your burn rate is critical for ${MONTHS_FULL[ledgerMonth]}. Eliminate non-essential categorical outflows immediately. Focus operational liquidity purely toward fixed programmatic baseline structures to stabilize cash preservation velocity.</p></div>`;
-    } else if (pct > 50) {
-      adviceHtml = `<div class="advice-box" style="background:#F2EBD9"><h4>Tactical Allocation Optimization</h4><p>Your allocation metrics show decent stability, but expansion limits remain narrow. Defer major optional consumer allocations until capital buffers recover to target baseline configurations.</p></div>`;
-    } else {
-      adviceHtml = `<div class="advice-box" style="background:#E2EFE7"><h4>Capital Deployment Insights</h4><p>Outstanding structural management. With capital retention exceeding 50%, you are positioned for asset accumulation. Consider routing the idle surplus allocation into productive investment tranches to accelerate compounded return parameters.</p></div>`;
-    }
-    adviceArea.innerHTML = adviceHtml;
+  function deleteTransaction(id) {
+    const lData = DB.getLedger(currentYear, currentMonth);
+    lData.transactions = lData.transactions.filter(t => t.id !== id);
+    DB.saveLedger(currentYear, currentMonth, lData);
+    showToast("Entry redacted from ledger.", "info");
+    renderLedger();
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // MODULE 2: INVESTMENT & ROI TRACKER
-  // ═══════════════════════════════════════════════════════════════
-  function initInvestments() {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById("inv-date").value = today;
-    renderInvestments();
+  function renderHealthIndicator(inc, exp) {
+    const light = document.getElementById("ledger-health-light");
+    const textNode = document.getElementById("ledger-health-text");
+    const adviceArea = document.getElementById("ledger-advice-area");
+
+    if (inc === 0) {
+      light.className = "health-light yellow";
+      textNode.innerHTML = `<h4>Awaiting parameters</h4><p>Please establish income baselines for evaluation metrics.</p>`;
+      adviceArea.innerHTML = "";
+      return;
+    }
+
+    const ratio = exp / inc;
+    if (ratio <= 0.5) {
+      light.className = "health-light green";
+      textNode.innerHTML = `<h4>Excellent Financial Health</h4><p>Your burn rate is optimized (${(ratio*100).toFixed(1)}% of total income allocated).</p>`;
+      adviceArea.innerHTML = `<div class="advice-box"><h4>Strategic Directives</h4><p>Capital efficiencies identified. Consider reallocating the current surplus to active investment instruments or scaling capital deployment structures within your portfolio.</p></div>`;
+    } else if (ratio <= 0.8) {
+      light.className = "health-light yellow";
+      textNode.innerHTML = `<h4>Standard Efficiency Mode</h4><p>Burn rate parameters acceptable (${(ratio*100).toFixed(1)}% of capital consumed).</p>`;
+      adviceArea.innerHTML = `<div class="advice-box"><h4>Strategic Directives</h4><p>Moderate operating variances. We suggest implementing targeted restrictions on non-essential structural cost units to preserve capitalization velocity.</p></div>`;
+    } else {
+      light.className = "health-light red";
+      textNode.innerHTML = `<h4>Alert Status Triggered</h4><p>Critical operating thresholds exceeded (${(ratio*100).toFixed(1)}% burn rate observed).</p>`;
+      adviceArea.innerHTML = `<div class="advice-box" style="background:#F2DEDE"><h4>Critical Risk Remediation</h4><p>High structural exposure discovered. Immediate cost mitigation and cessation of discretionary spending lines required to re-establish capital base balance.</p></div>`;
+    }
+  }
+
+  // ---- INVESTMENTS CONTROLLER ----
+  function renderInvestments() {
+    const invs = DB.getInvestments(currentYear, currentMonth);
+    const tbody = document.getElementById("inv-table-body");
+    tbody.innerHTML = "";
+
+    let totalCap = 0;
+    let totalCur = 0;
+
+    invs.forEach(i => {
+      totalCap += i.capital;
+      totalCur += i.currentVal;
+      const profit = i.currentVal - i.capital;
+      const roi = i.capital > 0 ? (profit / i.capital) * 100 : 0;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${i.date}</td>
+        <td>${i.asset}${i.src==='sheets'?'<span class="badge-src">Sync</span>':''}</td>
+        <td>${i.type}</td>
+        <td>${fmt(i.capital)}</td>
+        <td>${fmt(i.currentVal)}</td>
+        <td class="${profit >= 0 ? 'amount-in' : 'amount-out'}">${fmt(profit)}</td>
+        <td class="${roi >= 0 ? 'amount-in' : 'amount-out'}">${roi.toFixed(2)}%</td>
+        <td>
+          <button style="background:none;border:none;color:#D96B6B;cursor:pointer;font-weight:600" onclick="deleteInvestment('${i.id}')">Remove</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const netRoi = totalCur - totalCap;
+    const netPct = totalCap > 0 ? (netRoi / totalCap) * 100 : 0;
+
+    document.getElementById("metric-inv-capital").textContent = fmt(totalCap);
+    document.getElementById("metric-inv-current").textContent = fmt(totalCur);
+    
+    const roiEl = document.getElementById("metric-inv-roi");
+    roiEl.textContent = fmt(netRoi);
+    roiEl.className = netRoi >= 0 ? "val amount-in" : "val amount-out";
+    document.getElementById("metric-inv-roi-pct").textContent = `${netPct >= 0 ? '+' : ''}${netPct.toFixed(2)}% Net Yield`;
   }
 
   function addInvestment(e) {
@@ -1172,294 +1232,139 @@
     const date = document.getElementById("inv-date").value;
     const asset = document.getElementById("inv-asset").value.trim();
     const type = document.getElementById("inv-type").value;
-    const capital = parseFloat(document.getElementById("inv-capital").value);
-    const current = parseFloat(document.getElementById("inv-current-val").value);
+    const capital = parseFloat(document.getElementById("inv-capital").value) || 0;
+    const currentVal = parseFloat(document.getElementById("inv-current-val").value) || 0;
 
-    if(!date || !asset || isNaN(capital) || isNaN(current) || capital <= 0) return;
-
-    const dObj = new Date(date + "T00:00:00");
+    const iObj = { id: uid(), date, asset, type, capital, currentVal, src: "local" };
+    const dObj = new Date(date);
     const y = dObj.getFullYear();
     const m = dObj.getMonth();
 
-    const data = DB.getInvestments(y, m);
-    data.push({ id: 'inv-'+uid(), date, asset, type, capital, currentValue: current });
-    DB.saveInvestments(y, m, data);
+    const invs = DB.getInvestments(y, m);
+    invs.push(iObj);
+    DB.saveInvestments(y, m, invs);
 
-    showToast("Portfolio deployment asset logged.", "success");
+    showToast("Investment asset deployed inside data arrays.", "success");
     document.getElementById("inv-asset").value = "";
     document.getElementById("inv-capital").value = "";
     document.getElementById("inv-current-val").value = "";
-
-    if(y === invYear && m === invMonth) renderInvestments();
-  }
-
-  function deleteInvestment(id) {
-    const data = DB.getInvestments(invYear, invMonth);
-    const updated = data.filter(i => i.id !== id);
-    DB.saveInvestments(invYear, invMonth, updated);
-    showToast("Asset listing removed.", "info");
     renderInvestments();
   }
 
-  function renderInvestments() {
-    const data = DB.getInvestments(invYear, invMonth);
-    const tbody = document.getElementById("inv-table-body");
-    tbody.innerHTML = "";
-
-    let totalCap = 0;
-    let totalCur = 0;
-
-    if(data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px 0;">No active portfolio positions cataloged for ${MONTHS_FULL[invMonth]} ${invYear}.</td></tr>`;
-    } else {
-      data.sort((a,b) => new Date(a.date) - new Date(b.date));
-      data.forEach(i => {
-        totalCap += i.capital;
-        totalCur += i.currentValue;
-
-        const profit = i.currentValue - i.capital;
-        const roi = (profit / i.capital) * 100;
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td style="font-variant-numeric: tabular-nums;">${i.date}</td>
-          <td style="font-weight:500;">${i.asset}${i.src==='sheets'?'<span class="badge-src">Sheets</span>':''}</td>
-          <td><span style="font-size:0.75rem; background:var(--ivory-deep); padding:3px 8px; border-radius:4px;">${i.type}</span></td>
-          <td style="font-variant-numeric: tabular-nums;">${fmt(i.capital)}</td>
-          <td style="font-variant-numeric: tabular-nums;">${fmt(i.currentValue)}</td>
-          <td style="font-variant-numeric: tabular-nums;" class="${profit>=0?'amount-in':'amount-out'}">${profit>=0?'+':''}${fmt(profit)}</td>
-          <td style="font-variant-numeric: tabular-nums; font-weight:600;" class="${roi>=0?'amount-in':'amount-out'}">${roi>=0?'+':''}${roi.toFixed(2)}%</td>
-          <td><button style="background:none;border:none;color:#D96B6B;cursor:pointer;font-weight:600;" onclick="deleteInvestment('${i.id}')">Remove</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    const netProfit = totalCur - totalCap;
-    const netRoi = totalCap > 0 ? (netProfit / totalCap) * 100 : 0;
-
-    document.getElementById("metric-inv-capital").textContent = fmt(totalCap);
-    document.getElementById("metric-inv-current").textContent = fmt(totalCur);
-    document.getElementById("metric-inv-roi").textContent = (netProfit >= 0 ? "+ " : "") + fmt(netProfit);
-    
-    const roiEl = document.getElementById("metric-inv-roi-pct");
-    roiEl.textContent = `${netRoi >= 0 ? '+' : ''}${netRoi.toFixed(2)}% Aggregate Yield`;
-    roiEl.className = `sub ${netRoi >= 0 ? 'amount-in' : 'amount-out'}`;
+  function deleteInvestment(id) {
+    const invs = DB.getInvestments(currentYear, currentMonth);
+    const filtered = invs.filter(i => i.id !== id);
+    DB.saveInvestments(currentYear, currentMonth, filtered);
+    showToast("Asset model removed from database indices.", "info");
+    renderInvestments();
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // MODULE 3: ANNUAL OVERVIEW & DASHBOARD
-  // ═══════════════════════════════════════════════════════════════
-  let chartCashflowInstance = null;
-  let chartCategoriesInstance = null;
-  let chartSavingsInstance = null;
+  // ---- ENGINE GRÁFICO (ANNUAL DASHBOARD CONTROLLER) ----
+  function renderAnnualCharts() {
+    const targetYear = parseInt(document.getElementById("annual-year-select").value) || currentYear;
+    const yearLedger = DB.getYearLedger(targetYear);
 
-  function initAnnual() {
-    renderAnnual();
-  }
+    const incomeArr = [];
+    const expenseArr = [];
+    const savingsArr = [];
+    const catMap = {};
 
-  function renderAnnual() {
-    const ledgerData = DB.getYearLedger(annualYear);
-    const invData = DB.getYearInvestments(annualYear);
+    let totalYearIn = 0;
+    let totalYearOut = 0;
 
-    const monthlyIncomes = [];
-    const monthlyExpenses = [];
-    const monthlySavings = [];
-    const categoryTotals = {};
+    yearLedger.forEach((mObj, idx) => {
+      let mIn = mObj.income;
+      let mOut = 0;
 
-    let annualIncome = 0;
-    let annualExpenses = 0;
-    let invCapital = 0;
-    let invCurrent = 0;
-
-    ledgerData.forEach((month, idx) => {
-      let directIn = 0;
-      let exp = 0;
-      
-      month.transactions.forEach(t => {
-        if(t.type === 'income') directIn += t.amount;
-        else {
-          exp += t.amount;
-          categoryTotals[t.cat] = (categoryTotals[t.cat] || 0) + t.amount;
+      mObj.transactions.forEach(t => {
+        if(t.type === "income" && t.cat !== "Income") mIn += t.amount;
+        if(t.type === "expense") {
+          mOut += t.amount;
+          catMap[t.cat] = (catMap[t.cat] || 0) + t.amount;
         }
       });
 
-      const totalIn = (month.income || 0) + directIn;
-      const sav = totalIn - exp;
+      incomeArr.push(mIn);
+      expenseArr.push(mOut);
+      savingsArr.push(mIn - mOut);
 
-      monthlyIncomes.push(totalIn);
-      monthlyExpenses.push(exp);
-      monthlySavings.push(sav);
-
-      annualIncome += totalIn;
-      annualExpenses += exp;
+      totalYearIn += mIn;
+      totalYearOut += mOut;
     });
 
-    invData.forEach(month => {
-      month.forEach(i => {
-        invCapital += i.capital;
-        invCurrent += i.currentValue;
-      });
-    });
+    if(cashflowChart) cashflowChart.destroy();
+    if(categoryChart) categoryChart.destroy();
+    if(savingsChart) savingsChart.destroy();
 
-    renderCashflowChart(monthlyIncomes, monthlyExpenses);
-    renderCategoriesChart(categoryTotals);
-    renderSavingsChart(monthlySavings);
-    renderConsultingReport(annualIncome, annualExpenses, invCapital, invCurrent);
-  }
-
-  function renderCashflowChart(inc, exp) {
-    const ctx = document.getElementById("chart-annual-cashflow").getContext("2d");
-    if(chartCashflowInstance) chartCashflowInstance.destroy();
-
-    chartCashflowInstance = new Chart(ctx, {
-      type: 'bar',
+    const ctx1 = document.getElementById("chart-annual-cashflow").getContext("2d");
+    cashflowChart = new Chart(ctx1, {
+      type: "line",
       data: {
         labels: MONTHS,
         datasets: [
-          { label: 'Total Inflow', data: inc, backgroundColor: '#7BAFD4', borderRadius: 4 },
-          { label: 'Total Outflow', data: exp, backgroundColor: '#EEEBE3', borderRadius: 4 }
+          { label: "Total Income", data: incomeArr, borderColor: "#4F9B73", backgroundColor: "rgba(79,155,115,0.05)", tension: 0.2, fill: true },
+          { label: "Total Expenses", data: expenseArr, borderColor: "#C55A5A", backgroundColor: "rgba(197,90,90,0.05)", tension: 0.2, fill: true }
         ]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { labels: { font: { family: 'DM Sans', size: 11 } } },
-          title: { display: true, text: 'Macro Liquidity Optimization Matrix', font: { family: 'Cormorant Garamond', size: 16, weight: '400' }, color: '#2C3539' }
-        },
-        scales: {
-          y: { grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { font: { family: 'DM Sans', size: 9 } } },
-          x: { grid: { display: false }, ticks: { font: { family: 'DM Sans', size: 10, weight: 600 } } }
-        }
-      }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: "Operating Cashflow Development Pattern" } } }
     });
-  }
 
-  function renderCategoriesChart(catMap) {
-    const ctx = document.getElementById("chart-annual-categories").getContext("2d");
-    if(chartCategoriesInstance) chartCategoriesInstance.destroy();
-
-    const labels = Object.keys(catMap);
-    const data = Object.values(catMap);
-
-    if(labels.length === 0) { labels.push("No Outflows"); data.push(1); }
-
-    const palette = ['#7BAFD4', '#A8CCE8', '#4F8DB4', '#C3D7E6', '#EEEBE3', '#D0C9BC', '#A2BAC9', '#E0DCD3'];
-
-    chartCategoriesInstance = new Chart(ctx, {
-      type: 'doughnut',
+    const ctx2 = document.getElementById("chart-annual-categories").getContext("2d");
+    const catLabels = Object.keys(catMap);
+    const catData = Object.values(catMap);
+    categoryChart = new Chart(ctx2, {
+      type: "doughnut",
       data: {
-        labels: labels,
-        datasets: [{ data: data, backgroundColor: palette.slice(0, labels.length), borderHeight: 1, borderColor: '#FAFAF7' }]
+        labels: catLabels.length ? catLabels : ["No Expense Parameters Logged"],
+        datasets: [{ data: catData.length ? catData : [1], backgroundColor: ["#7BAFD4", "#A8CCE8", "#4F8DB4", "#D2E3F0", "#E6C262", "#D96B6B", "#6BD99C", "#C4C4C4"] }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'right', labels: { font: { family: 'DM Sans', size: 10 } } },
-          title: { display: true, text: 'Structural Outflow Concentration', font: { family: 'Cormorant Garamond', size: 16, weight: '400' }, color: '#2C3539' }
-        }
-      }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: "Expense Allocation Structural Breakout" } } }
     });
-  }
 
-  function renderSavingsChart(sav) {
-    const ctx = document.getElementById("chart-annual-savings").getContext("2d");
-    if(chartSavingsInstance) chartSavingsInstance.destroy();
-
-    chartSavingsInstance = new Chart(ctx, {
-      type: 'bar',
+    const ctx3 = document.getElementById("chart-annual-savings").getContext("2d");
+    savingsChart = new Chart(ctx3, {
+      type: "bar",
       data: {
         labels: MONTHS,
-        datasets: [{
-          label: 'Net Retained Velocity',
-          data: sav,
-          backgroundColor: sav.map(v => v >= 0 ? 'rgba(107, 217, 156, 0.7)' : 'rgba(217, 107, 107, 0.7)'),
-          borderColor: sav.map(v => v >= 0 ? '#6BD99C' : '#D96B6B'),
-          borderWidth: 1,
-          borderRadius: 4
-        }]
+        datasets: [{ label: "Net Savings Vector", data: savingsArr, backgroundColor: savingsArr.map(v => v >= 0 ? "rgba(123, 175, 212, 0.6)" : "rgba(217, 107, 107, 0.6)"), borderColor: savingsArr.map(v => v >= 0 ? "#7BAFD4" : "#D96B6B"), borderWidth: 1 }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          title: { display: true, text: 'Net Capital Accumulation Velocity', font: { family: 'Cormorant Garamond', size: 16, weight: '400' }, color: '#2C3539' }
-        },
-        scales: {
-          y: { grid: { color: 'rgba(0,0,0,0.03)' } },
-          x: { grid: { display: false } }
-        }
-      }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: "Monthly Retained Capital Volatility Timeline" } } }
     });
-  }
 
-  function renderConsultingReport(income, expenses, invCapital, invCurrent) {
-    const el = document.getElementById("annual-report-target");
-    const savings = income - expenses;
-    const savingsRate = income > 0 ? (savings / income) * 100 : 0;
+    const repTarget = document.getElementById("annual-report-target");
+    const netYearStr = totalYearIn - totalYearOut;
+    const yearSavingsRate = totalYearIn > 0 ? (netYearStr / totalYearIn) * 100 : 0;
 
-    const invProfit = invCurrent - invCapital;
-    const invROI = invCapital > 0 ? (invProfit / invCapital) * 100 : 0;
-
-    const insights = [
-      { label: "Aggregate Net Volume", val: fmt(income), desc: `Gross optimized capital capacity.` },
-      { label: "Structural Efficiencies", val: `${savingsRate.toFixed(1)}%`, desc: `Net margin capital retention benchmark.` },
-      { label: "Asset Compounding ROI", val: `${invROI.toFixed(2)}%`, desc: `Tactical yield generation efficiency.` }
-    ];
-
-    const advice = [];
-    if(savingsRate > 40) {
-      advice.push(`🟢 <strong>Elite Retention Velocity:</strong> Your structural alignment parameters are performing at institutional standards. Capital protection thresholds are highly secured.`);
-    } else if (savingsRate > 15) {
-      advice.push(`🟡 <strong>Balanced Structural Foundation:</strong> Stabilization goals met. To leverage compounding dynamics efficiently, aim to scale compression targets another 5-10% to expand investment runways.`);
-    } else {
-      advice.push(`🔴 <strong>Structural Liquidity Compression:</strong> High capital exposure detected. Retained allocation limits are shallow, presenting micro systemic vulnerability to unforeseen variable constraints.`);
-    }
-
-    if (expenses > 0) {
-      const emergencyFundMonths = savings / (expenses / 12 || 1);
-      advice.push(`🛡️ <strong>Liquidity Runway Analysis:</strong> At present spend-velocity baselines, current annual retention patterns maintain a safety multiplier capability of ${emergencyFundMonths.toFixed(1)} months of operational safety coverage.`);
-    }
-
-    if (invCapital > 0) {
-      advice.push(`📊 <strong>Portfolio Capital Velocity:</strong> You have effectively transitioned ${fmt(invCapital)} out of depreciating cash structures and into productive asset tranches, achieving a premium compounding rate.`);
-    } else {
-      advice.push(`💡 <strong>Productive Capital Friction:</strong> Your portfolio displays zero active risk allocation. Maintaining total balance structures in flat fiat accounts exposes structural assets to inflationary degradation.`);
-    }
-    advice.push(`📅 <strong>Strategic Roadmap Forward:</strong> Optimize financial metrics systematically on a rolling quarterly cycle. Target a progressive savings expansion benchmark of ${fmt(savings*1.2)} for the upcoming macro cycle.`);
-
-    el.innerHTML = `
-      <h2>Strategic Financial Report</h2>
-      <div class="sub">Annual Analytical Consulting · ${annualYear}</div>
+    repTarget.innerHTML = `
+      <h2>Financial Intelligence Strategic Consulting Report</h2>
+      <div class="sub">Analytics Frame Engine Verified Output // System Core Insights</div>
       <div class="consulting-insights">
-        ${insights.map(i=>`
-          <div class="insight-item">
-            <div class="insight-label">${i.label}</div>
-            <div class="insight-val">${i.val}</div>
-            <div class="insight-desc">${i.desc}</div>
-          </div>`).join("")}
+        <div class="insight-item">
+          <div class="insight-label">Annual Cumulative Inflow</div>
+          <div class="insight-val" style="color:#4F9B73">${fmt(totalYearIn)}</div>
+          <div class="insight-desc">Aggregated earnings matrix parameters verified.</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-label">Annual Structural Outflow</div>
+          <div class="insight-val" style="color:#C55A5A">${fmt(totalYearOut)}</div>
+          <div class="insight-desc">Consolidated cost system operational drawdowns.</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-label">System Savings Rate</div>
+          <div class="insight-val ${netYearStr>=0?'amount-in':'amount-out'}">${yearSavingsRate.toFixed(1)}%</div>
+          <div class="insight-desc">Calculated capital preservation coefficient.</div>
+        </div>
       </div>
       <div class="annual-advice">
-        ${advice.map(a=>`<div class="advice-item">${a}</div>`).join("")}
-      </div>`;
+        <div class="advice-item"><strong>Capital Vector Analysis:</strong> Net financial movement generated a total structural balance of ${fmt(netYearStr)}. Your operational framework indicates a standard capital retention index.</div>
+        <div class="advice-item"><strong>Risk Assessment Matrix:</strong> Ensure core cost centers do not scale exponentially above 65% of the primary asset base during multi-quarter intervals.</div>
+        <div class="advice-item"><strong>Strategic Asset Optimization Target:</strong> Maintain data feeds through the Google Sheets synchronization module to continuously track investment returns and preserve portfolio accuracy.</div>
+      </div>
+    `;
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // INITIALIZATION ENGINE
-  // ═══════════════════════════════════════════════════════════════
-  function initApp() {
-    initTimelineSelectors();
-    initLedger();
-    initInvestments();
-    initAnnual();
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    initAuth();
-  });
+  // ENTRY POINT SYSTEM BOOT
+  window.addEventListener("DOMContentLoaded", initAuth);
   </script>
 </body>
 </html>
